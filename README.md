@@ -63,11 +63,24 @@ RP-Hub-Toolkit/
 │
 ├── index.html                ← 🎯 唯一产出物（内嵌所有 CSS + JS）
 │
-├── README.md                 ← 整合方案说明
+├── README.md                    ← 整合方案说明
 │
-├── checklist.md              ← 整合流程步骤
+├── checklist.md                 ← 整合流程步骤
 │
-└── .gitignore                ← Git 排除规则
+├── ui-spec.md                   ← UI 设计规范（共享部分：布局/主题/组件/数据流）
+│
+├── ui/                          ← UI 设计规范（各模块独立文件）
+│   ├── ui-home.md               ← 欢迎首页
+│   ├── ui-card-editor.md        ← 角色卡编辑器
+│   ├── ui-world-book.md         ← 世界书管理器
+│   ├── ui-inspection.md         ← 体检验收台
+│   ├── ui-builder.md            ← UI 模板实验室
+│   ├── ui-regex-lab.md          ← 正则工坊
+│   └── ui-prompt-lab.md         ← 生图提示词管理
+│
+├── ai-integration.md            ← AI 集成方案（给开发者）
+│
+└── .gitignore                   ← Git 排除规则
 ```
 
 > 开发过程中的中间产物（如调试用的临时文件）**不入库**。
