@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>正则UI转换器 · 纯AI驱动版</title>
+<style>
+:root {
+  --bg-main: #0b0f15;
+  --bg-card: #131a24;
+  --bg-input: #0b0f17;
+  --border-color: #1e2c3a;
+  --text-main: #cfdae6;
+  --text-muted: #8ea4bb;
+  --text-dark: #6b7d91;
+  --accent-blue: #38bdf8;
+  --accent-blue-hover: #7dd3fc;
+  --accent-purple: #8b5cf6;
+  --accent-purple-hover: #a78bfa;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  padding: 15px 10px;
+  line-height: 1.5;
+}
+
+.app {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  text-align: center;
+  margin: 10px 0 20px;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+  border-color: #2a3c4e;
+}
+
+.card h2 {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  border-left: 3px solid var(--accent-blue);
+  padding-left: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.input-group {
+  margin-bottom: 14px;
+  flex: 1;
+  min-width: 220px;
+}
+
+label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+input, textarea, select {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.1);
+}
+
+textarea { min-height: 120px; }
+
+button {
+  background: var(--accent-blue);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  color: var(--bg-main);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+button:hover {
+  background: var(--accent-blue-hover);
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button.secondary {
+  background: #1e2c3a;
+  color: var(--text-muted);
+}
+
+button.secondary:hover {
+  background: #2a3c4e;
+  color: var(--text-main);
+}
+
+button.ai-btn {
+  background: var(--accent-purple);
+  color: white;
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  margin-top: 10px;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+}
+
+button.ai-btn:hover {
+  background: var(--accent-purple-hover);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.output-section { margin-top: 12px; }
+
+.output-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.output-title h3 {
+  font-size: 0.9rem;
+  color: #b4c8dd;
+  font-weight: 600;
+}
+
+.output-box {
+  background: #080c12;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 14px;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: #b4c8dd;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 300px;
+  overflow-y: auto;
+  line-height: 1.6;
+  position: relative;
+}
+
+.copy-btn {
+  background: rgba(30, 44, 58, 0.5);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.copy-btn:hover {
+  background: var(--border-color);
+  color: white;
+}
+
+/* 消息提示框 */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  color: var(--success);
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.note { color: var(--warning); font-size: 0.75rem; margin-top: 6px; }
+hr { border-color: var(--border-color); margin: 16px 0; border-style: solid; border-width: 1px 0 0 0; }
+
+/* 折叠面板 */
+.collapsible-header { cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+.collapsible-content { display: none; margin-top: 16px; animation: fadeIn 0.3s ease; }
+.collapsible-content.show { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* 状态指示器与动画 */
+.status-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+.status-dot.online { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.status-dot.offline { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <h1>✨ 正则UI转换器 ✨</h1>
+  <p style="text-align:center; color:var(--text-dark); font-size:0.85rem; margin-top:-15px; margin-bottom:20px;">告别预制菜，输入配置，让 AI 为您精准生成世界书、正则与面板</p>
+
+  <!-- API 配置区 -->
+  <div class="card">
+    <div class="collapsible-header" onclick="toggleCollapse('apiSection')">
+      <h2>🔗 API 连接与模型选择（必填核心）</h2>
+      <span style="color:var(--text-muted); font-size:0.8rem;" id="apiChevron">展开 ▼</span>
+    </div>
+    <div class="collapsible-content show" id="apiSection">
+      <div class="input-group">
+        <label>API 地址 (Base URL)</label>
+        <input type="text" id="apiUrl" placeholder="例如：https://api.openai.com/v1" autocomplete="url">
+      </div>
+      <div class="input-group">
+        <label>API 密钥</label>
+        <input type="password" id="apiKey" placeholder="sk-..." autocomplete="current-password">
+      </div>
+      <div class="row">
+        <button onclick="checkConnection()">🔍 检查连接</button>
+        <button onclick="fetchModels()" class="secondary">📋 获取模型列表</button>
+        <span id="connectionStatus" style="font-size:0.85rem; margin-left:10px; display:flex; align-items:center;"></span>
+      </div>
+      <div class="input-group" style="margin-top:16px;">
+        <label>选择推理模型（推荐使用强力模型如 GPT-5.5, Gemini3.1pro 等）</label>
+        <select id="modelSelect">
+          <option value="">请先获取模型或手动输入</option>
+        </select>
+      </div>
+      <p class="note">所有数据仅在本地浏览器处理，API请求直达您的端点。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>⚙️ 定义数据结构与格式规则</h2>
+    <div class="row">
+      <div class="input-group" style="flex:2">
+        <label>🔑 触发前缀（例如：状态数据更新：）</label>
+        <input type="text" id="matchPrefix" placeholder="AI 必须以此前缀开头输出状态行">
+      </div>
+      <div class="input-group">
+        <label>字段分隔符</label>
+        <input type="text" id="separator" value="|" placeholder="如: | 或 ,">
+      </div>
+      <div class="input-group">
+        <label>键值连接符</label>
+        <input type="text" id="kvSep" value="=" placeholder="如: = 或 :">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🌐 原始 HTML 面板</h2>
+    <label style="color:var(--text-dark); margin-bottom:10px;">请将您写好的静态 HTML 面板粘贴在此处。AI 将自动分析提取变量并替换为 $1, $2 等占位符。</label>
+    <textarea id="htmlTemplate" placeholder="<div class='panel'>&#10;  <div>好感度：85</div>&#10;  <div>当前天气：晴朗</div>&#10;</div>"></textarea>
+    
+    <div id="aiStatus" style="margin-top:12px; font-size:0.85rem; font-weight:500; text-align:center; min-height:20px;"></div>
+    
+    <button class="ai-btn" id="generateBtn" onclick="aiGenerateEverything()">
+      <span id="btnIcon">🚀</span> 
+      <span id="btnText">AI 深度思考 · 一键生成全部 (正则 + 世界书 + 模板)</span>
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="output-title">
+      <h3>📤 AI 生成的世界书指令 (World Info)</h3>
+      <button class="copy-btn" onclick="copyContent('worldInfoOutput')">📋 复制指令</button>
+    </div>
+    <div class="output-box" id="worldInfoOutput">等待 AI 生成专属指令...</div>
+    <p class="note">将此内容放入新建的世界书中，设置“常驻”并放置于“角色后”。</p>
+  </div>
+
+  <div class="card">
+    <div class="output-title">
+      <h3>📤 AI 生成的正则表达式 (Regex Pattern)</h3>
+      <button class="copy-btn" onclick="copyContent('regexOutput')">📋 复制正则</button>
+    </div>
+    <div class="output-box" id="regexOutput" style="color: var(--accent-blue); font-weight: bold;">等待 AI 构建精确正则...</div>
+    <p class="note">正则表达式中填写。修饰符默认包含 /gm。</p>
+  </div>
+
+  <div class="card">
+    <div class="output-title">
+      <h3>📤 AI 转换的渲染模板 (替换占位符后)</h3>
+      <button class="copy-btn" onclick="copyContent('htmlOutput')">📋 复制 HTML</button>
+    </div>
+    <div class="output-box" id="htmlOutput">等待 AI 渲染模板...</div>
+    <p class="note">粘贴至正则脚本的“替换为 (Replacement)”区域，勾选：AI、仅渲染、替代正则。</p>
+  </div>
+  
+  <div class="card">
+    <div class="output-title">
+      <h3>📋 AI 提取的字段参考 (Fields)</h3>
+    </div>
+    <div class="output-box" id="fieldsOutput" style="min-height: 40px; color: var(--text-dark);">等待提取...</div>
+  </div>
+
+</div>
+
+<script>
+// 持久化存储键名
+const STORAGE_KEY = 'regex_ui_config';
+
+// 页面加载时恢复配置
+window.onload = () => {
+  try {
+    const config = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (config) {
+      document.getElementById('apiUrl').value = config.apiUrl || '';
+      document.getElementById('apiKey').value = config.apiKey || '';
+      document.getElementById('matchPrefix').value = config.matchPrefix || '';
+      document.getElementById('separator').value = config.separator || '|';
+      document.getElementById('kvSep').value = config.kvSep || '=';
+      document.getElementById('htmlTemplate').value = config.htmlTemplate || '';
+      
+      // 如果有保存的模型，临时加进去选中
+      if(config.modelSelect) {
+         const select = document.getElementById('modelSelect');
+         select.innerHTML = `<option value="${config.modelSelect}">${config.modelSelect}</option>`;
+      }
+    }
+  } catch(e) {}
+};
+
+// 保存配置 (增加安全拦截与大小限制)
+function saveConfig() {
+  const htmlContent = document.getElementById('htmlTemplate').value;
+  // 如果 HTML 内容过大（例如超过 100,000 字符），就不保存到本地缓存，避免撑爆 localStorage 导致报错
+  const htmlToSave = htmlContent.length < 100000 ? htmlContent : "";
+
+  const config = {
+    apiUrl: document.getElementById('apiUrl').value,
+    apiKey: document.getElementById('apiKey').value,
+    modelSelect: document.getElementById('modelSelect').value,
+    matchPrefix: document.getElementById('matchPrefix').value,
+    separator: document.getElementById('separator').value,
+    kvSep: document.getElementById('kvSep').value,
+    htmlTemplate: htmlToSave
+  };
+
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  } catch (e) {
+    console.warn("本地存储失败 (可能超出了 5MB 配额或在 file:// 协议下受限):", e);
+    // 如果存储仍然超额，作为降级方案，我们尝试只保存最核心的 API 设置，放弃保存 HTML 模板
+    try {
+      const minConfig = { 
+        apiUrl: config.apiUrl, 
+        apiKey: config.apiKey, 
+        modelSelect: config.modelSelect 
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(minConfig));
+    } catch(e2) {
+      console.error("无法写入本地存储，但不影响当前页面的 AI 运行。");
+    }
+  }
+}
+
+// UI 交互辅助
+function toggleCollapse(id) { 
+  const el = document.getElementById(id);
+  const chevron = document.getElementById('apiChevron');
+  el.classList.toggle('show'); 
+  chevron.innerText = el.classList.contains('show') ? '收起 ▲' : '展开 ▼';
+}
+
+function toast(msg, isError = false) {
+  let t = document.querySelector('.toast');
+  if(!t) {
+    t = document.createElement('div');
+    t.className = 'toast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.color = isError ? 'var(--danger)' : 'var(--success)';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function copyContent(elementId) {
+  const el = document.getElementById(elementId);
+  const text = el.textContent;
+  if(text.includes('等待 AI') || text.includes('等待提取')) {
+    toast('暂无内容可复制', true);
+    return;
+  }
+  
+  // 现代复制 API
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => toast('✅ 内容已复制到剪贴板'));
+  } else {
+    // 降级兼容 iframe 等环境
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      toast('✅ 内容已复制');
+    } catch (err) {
+      toast('❌ 复制失败，请手动选择复制', true);
+    }
+    document.body.removeChild(textArea);
+  }
+}
+
+function getBaseUrl() {
+  let base = document.getElementById('apiUrl').value.trim().replace(/\/+$/, '');
+  if(!base) return '';
+  if(base.includes('/chat/completions')) base = base.split('/chat/completions')[0];
+  if(base.includes('/models')) base = base.split('/models')[0];
+  return base;
+}
+
+async function checkConnection() {
+  saveConfig();
+  const base = getBaseUrl();
+  const key = document.getElementById('apiKey').value.trim();
+  const status = document.getElementById('connectionStatus');
+  
+  if(!base || !key) {
+    status.innerHTML = '<span style="color:var(--danger)">请填写完整的地址和密钥</span>';
+    return;
+  }
+  
+  status.innerHTML = '<span class="spinner"></span><span style="color:var(--text-muted)"> 检测中...</span>';
+  try {
+    const res = await fetch(base + '/models', {
+      headers: { 'Authorization': 'Bearer ' + key }
+    });
+    if(res.ok) {
+      status.innerHTML = '<span class="status-dot online"></span><span style="color:var(--success)">连接成功</span>';
+      toast('API 连接成功');
+    } else {
+      status.innerHTML = `<span class="status-dot offline"></span><span style="color:var(--danger)">请求失败 (${res.status})</span>`;
+    }
+  } catch(e) {
+    status.innerHTML = '<span class="status-dot offline"></span><span style="color:var(--danger)">网络错误或跨域拦截</span>';
+  }
+}
+
+async function fetchModels() {
+  saveConfig();
+  const base = getBaseUrl();
+  const key = document.getElementById('apiKey').value.trim();
+  const select = document.getElementById('modelSelect');
+  
+  if(!base || !key) { toast('请先填写 API 地址和密钥', true); return; }
+  
+  select.innerHTML = '<option>请求模型列表中...</option>';
+  try {
+    const res = await fetch(base + '/models', {
+      headers: { 'Authorization': 'Bearer ' + key }
+    });
+    const data = await res.json();
+    const models = data.data || [];
+    
+    if(models.length === 0) {
+      select.innerHTML = '<option value="">无可用模型</option>';
+      return;
+    }
+    
+    select.innerHTML = models.map(m => `<option value="${m.id}">${m.id}</option>`).join('');
+    
+    // 智能选择偏好的高级模型
+    const preferred = ['gpt-4', 'claude-3', 'deepseek-coder', 'gpt-3.5'];
+    let selectedIndex = 0;
+    for(let pref of preferred) {
+      const idx = models.findIndex(m => m.id.toLowerCase().includes(pref));
+      if(idx !== -1) { selectedIndex = idx; break; }
+    }
+    select.selectedIndex = selectedIndex;
+    
+    toast(`✅ 成功获取 ${models.length} 个可用模型`);
+    saveConfig();
+  } catch(e) {
+    select.innerHTML = '<option value="">获取失败，请手动输入模型ID</option>';
+    toast('❌ 模型获取失败', true);
+  }
+}
+
+async function aiGenerateEverything() {
+  saveConfig();
+  const base = getBaseUrl();
+  const key = document.getElementById('apiKey').value.trim();
+  const model = document.getElementById('modelSelect').value;
+  const rawHtml = document.getElementById('htmlTemplate').value.trim();
+  const prefix = document.getElementById('matchPrefix').value.trim() || '状态数据：';
+  const sep = document.getElementById('separator').value || '|';
+  const kvSep = document.getElementById('kvSep').value || '=';
+
+  if(!base || !key) { toast('请配置 API 信息', true); return; }
+  if(!model) { toast('请选择或输入模型', true); return; }
+  if(!rawHtml) { toast('请提供原始 HTML 模板', true); return; }
+
+  const btn = document.getElementById('generateBtn');
+  const statusDiv = document.getElementById('aiStatus');
+  const icon = document.getElementById('btnIcon');
+  
+  btn.disabled = true;
+  icon.className = 'spinner';
+  icon.textContent = '';
+  document.getElementById('btnText').textContent = 'AI 正在深度思考构思架构中...';
+  statusDiv.innerHTML = '<span style="color:var(--accent-blue)">正在与大语言模型通信，请耐心等待 (约需10-30秒)...</span>';
+
+  // 核心 Prompt 设计：让 AI 完全接管逻辑，不留任何预制菜
+  const systemPrompt = `你是一位顶级的正则工程师和 SillyTavern (酒馆) 机制专家。
+用户的目的是：给一段静态的 HTML 面板赋予动态能力。他们希望 AI 在角色扮演对话的最后，按照特定格式输出一行数据，然后用正则抓取这行数据，最终替换回 HTML 中进行渲染。
+
+你的任务是仔细阅读用户提供的 HTML、前缀和分隔符，然后一次性生成完美配套的三件套：
+1. **fields (字段数组)**: 从 HTML 中识别出所有看起来像动态数据的文本/数字（如姓名、好感度、天气、地点、心情等）。给它们起简短清晰的中文键名。
+2. **worldInfo (世界书指令)**: 用自然语言写一段给扮演 AI 的提示词。告诉 AI 必须在回复的最末尾输出一行紧凑的纯文本数据。必须向 AI 展示一个基于用户参数的【标准输出范例】（严格使用用户提供的前缀、键值对连接符、分隔符）。要求 AI 严禁在数据行中使用换行符和 Markdown 格式。
+3. **regex (正则表达式)**: 编写一个能完美捕获 AI 输出的数据行的正则表达式。
+   - 必须精确匹配用户设定的前缀。
+   - 考虑到转义：如果你使用用户提供的前缀或分隔符，若其中包含正则特殊字符(如 [ ] ( ) * + ? . | ^ $ 等)，你必须在正则中对它们进行正确转义 (\\)。
+   - 为 fields 中的每个字段编写捕获组 (如 (.*?) 或 (\\d+))，确保捕获组的顺序 $1, $2, $3... 与 fields 数组严格对应。
+4. **html (渲染模板)**: 将原始 HTML 中对应的具体数值/文本，精准替换为正则捕获组占位符 ($1, $2, $3...)。
+
+【必须严格按照以下 JSON 格式输出，不要包含任何 Markdown 代码块标签，不要有任何多余的解释】：
+{
+  "fields": ["字段1", "字段2"],
+  "worldInfo": "在这里写世界书提示词...",
+  "regex": "在这里写正则表达式字符串(不需要前后的/，只需要模式本身)",
+  "html": "在这里写替换了占位符的完整 HTML..."
+}`;
+
+  const userPrompt = `
+【用户配置参数】
+输出前缀：${prefix}
+字段分隔符：${sep}
+键值连接符：${kvSep}
+
+【原始 HTML 面板代码】
+${rawHtml}
+
+请立即分析并返回纯 JSON 格式数据。`;
+
+  try {
+    const res = await fetch(base + '/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 0.2, // 较低温度保证逻辑与 JSON 格式的稳定性
+        response_format: { type: "json_object" } // 强制要求 JSON 对象 (支持的模型会更稳)
+      })
+    });
+
+    if(!res.ok) {
+      const errBody = await res.text();
+      throw new Error(`API 错误 ${res.status}: ${errBody}`);
+    }
+
+    const data = await res.json();
+    let content = data.choices[0].message.content.trim();
+    
+    // 清理可能的 Markdown 包装
+    content = content.replace(/^```json/i, '').replace(/^```/, '').replace(/```$/, '').trim();
+    
+    const result = JSON.parse(content);
+    
+    if(!result.worldInfo || !result.regex || !result.html) {
+      throw new Error("AI 返回的数据结构不完整");
+    }
+
+    // 渲染结果到 UI
+    document.getElementById('worldInfoOutput').textContent = result.worldInfo;
+    
+    // 正则表达式包装上标准的修饰符用于展示
+    const finalRegex = `/${result.regex}/gm`;
+    document.getElementById('regexOutput').textContent = finalRegex;
+    
+    document.getElementById('htmlOutput').textContent = result.html;
+    
+    document.getElementById('fieldsOutput').innerHTML = 
+      result.fields ? result.fields.map((f, i) => `<span style="background:var(--bg-card); padding:2px 8px; border-radius:4px; margin:2px; display:inline-block; border:1px solid var(--border-color);">$${i+1}: ${f}</span>`).join('') : '无提取字段';
+
+    statusDiv.innerHTML = `<span style="color:var(--success)">✅ AI 生成完毕！精准分析并替换了 ${result.fields ? result.fields.length : 0} 个变量节点。</span>`;
+    toast('✅ 一键生成成功');
+
+  } catch(e) {
+    console.error("生成失败:", e);
+    statusDiv.innerHTML = `<span style="color:var(--danger)">❌ 生成失败: ${e.message}。建议检查模型是否支持 JSON 输出，或更换更强模型。</span>`;
+    toast('❌ 生成出错', true);
+  } finally {
+    // 恢复按钮状态
+    btn.disabled = false;
+    icon.className = '';
+    icon.textContent = '🚀';
+    document.getElementById('btnText').textContent = 'AI 深度思考 · 一键生成全部 (正则 + 世界书 + 模板)';
+  }
+}
+</script>
+<script src="/offline/sw-register.js"></script>
+</body>
+</html>

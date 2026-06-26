@@ -1,0 +1,1455 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RP卡发布前体检验收台</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f6f7f9;
+  --panel:#ffffff;
+  --panel-2:#f0f3f7;
+  --text:#18202b;
+  --muted:#687386;
+  --soft:#8a96a8;
+  --line:#dce2ea;
+  --accent:#2563eb;
+  --accent-2:#0891b2;
+  --good:#12805c;
+  --warn:#b26a00;
+  --bad:#c2413b;
+  --shadow:0 12px 34px rgba(31,41,55,.08);
+  --radius:8px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font:14px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;
+  color:var(--text);
+  background:var(--bg);
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.app{min-height:100vh;display:flex;flex-direction:column}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:14px 20px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.88);
+  position:sticky;top:0;z-index:10;backdrop-filter:blur(10px)
+}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-mark{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:white;display:grid;place-items:center;font-weight:900}
+.brand-title{font-size:18px;font-weight:900;white-space:nowrap}
+.brand-sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.layout{
+  display:grid;grid-template-columns:minmax(280px,340px) minmax(420px,1fr) minmax(320px,410px);
+  gap:14px;padding:14px;align-items:start
+}
+.panel{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow:hidden
+}
+.panel-head{
+  padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:8px
+}
+.panel-title{font-weight:900;font-size:14px}
+.panel-body{padding:14px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:6px}
+.label{font-size:12px;color:var(--muted);font-weight:800}
+.input,.select,.textarea{
+  width:100%;border:1px solid var(--line);background:white;border-radius:7px;padding:9px 10px;
+  outline:none;min-height:38px
+}
+.textarea{resize:vertical;min-height:100px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;line-height:1.5}
+.input:focus,.select:focus,.textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.btn{
+  border:1px solid var(--line);background:white;border-radius:7px;height:36px;padding:0 12px;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:800;color:var(--text)
+}
+.btn:hover{border-color:#b8c3d2;background:#f8fafc}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:white}
+.btn.primary:hover{background:#1d4ed8}
+.btn.good{background:var(--good);border-color:var(--good);color:white}
+.btn.warn{background:#fff8e8;border-color:#ffd58a;color:#8a5200}
+.btn.bad{background:#fff1f1;border-color:#ffc0bd;color:#9f221d}
+.btn.small{height:30px;padding:0 9px;font-size:12px}
+.drop{
+  border:1px dashed #aeb8c6;border-radius:8px;background:#f8fafc;padding:18px;text-align:center;
+  display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;min-height:150px
+}
+.drop.drag{border-color:var(--accent);background:#eef5ff}
+.drop strong{font-size:15px}
+.hint{color:var(--muted);font-size:12px}
+.notice{
+  border:1px solid #bdebd7;background:#effaf5;color:#126849;border-radius:8px;
+  padding:10px 11px;font-size:12px;font-weight:800;line-height:1.55
+}
+.notice.ai{
+  border-color:#c7d7fe;background:#eef4ff;color:#1e4e9a
+}
+.card-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{border:1px solid var(--line);background:var(--panel-2);border-radius:8px;padding:10px}
+.stat b{font-size:20px;display:block;line-height:1}
+.stat span{font-size:11px;color:var(--muted);font-weight:800}
+.score-wrap{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:center}
+.score-ring{
+  width:116px;height:116px;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(var(--accent) calc(var(--score)*1%),#e4e9f0 0)
+}
+.score-inner{width:86px;height:86px;border-radius:50%;background:white;display:grid;place-items:center;text-align:center;border:1px solid var(--line)}
+.score-num{font-size:28px;font-weight:900;line-height:1}
+.score-label{font-size:11px;color:var(--muted);font-weight:800}
+.summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:800;border:1px solid var(--line);background:white;color:var(--muted)}
+.pill.good{color:var(--good);background:#effaf5;border-color:#bdebd7}
+.pill.warn{color:var(--warn);background:#fff8e8;border-color:#ffe0a8}
+.pill.bad{color:var(--bad);background:#fff1f1;border-color:#ffc9c7}
+.tabs{display:flex;gap:6px;padding:10px 14px 0;border-bottom:1px solid var(--line);overflow:auto;background:white}
+.tab{
+  border:1px solid var(--line);border-bottom:none;background:#f8fafc;border-radius:8px 8px 0 0;
+  padding:8px 10px;font-size:12px;font-weight:900;white-space:nowrap
+}
+.tab.active{background:white;color:var(--accent)}
+.issue-list{display:flex;flex-direction:column;gap:8px}
+.issue{
+  border:1px solid var(--line);border-left-width:4px;border-radius:8px;background:white;padding:10px 11px
+}
+.issue.good{border-left-color:var(--good)}
+.issue.warn{border-left-color:var(--warn)}
+.issue.bad{border-left-color:var(--bad)}
+.issue.info{border-left-color:var(--accent-2)}
+.issue-title{font-weight:900;margin-bottom:3px}
+.issue-desc{color:var(--muted);font-size:12px;white-space:pre-wrap}
+.budget-row{display:grid;grid-template-columns:92px 1fr 72px;gap:8px;align-items:center;margin:8px 0}
+.bar{height:9px;background:#e7edf4;border-radius:999px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--accent);border-radius:999px}
+.bar.wi span{background:#f59e0b}
+.bar.rx span{background:#10b981}
+.bar.open span{background:#8b5cf6}
+.bar.ui span{background:#0891b2}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;font-size:12px}
+.kv div:nth-child(odd){color:var(--muted);font-weight:800}
+.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+.out{
+  width:100%;min-height:240px;white-space:pre-wrap;border:1px solid var(--line);background:#fbfcfe;
+  border-radius:8px;padding:12px;font-size:12px;line-height:1.55;overflow:auto
+}
+.ai-status{font-size:12px;color:var(--muted);min-height:18px}
+.empty{padding:38px 16px;text-align:center;color:var(--muted)}
+.section-title{font-weight:900;margin:4px 0 8px}
+.checklist{display:grid;gap:8px}
+.checkitem{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--muted)}
+.checkitem input{margin-top:3px}
+.hidden{display:none!important}
+@media(max-width:1180px){
+  .layout{grid-template-columns:320px 1fr}
+  .right-col{grid-column:1/-1}
+}
+@media(max-width:760px){
+  .topbar{align-items:flex-start;flex-direction:column}
+  .layout{grid-template-columns:1fr;padding:10px}
+  .score-wrap{grid-template-columns:1fr}
+  .summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card-meta{grid-template-columns:1fr}
+  .brand-sub{white-space:normal}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">验</div>
+      <div>
+        <div class="brand-title">RP卡发布前体检验收台</div>
+        <div class="brand-sub">基础体检完全本地运行，不用 Key；只有 AI 深度诊断需要作者自行配置接口。</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn small" id="btn-sample">载入示例</button>
+      <button class="btn small" id="btn-reset">清空</button>
+      <button class="btn primary small" id="btn-export-report">导出报告</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="panel">
+      <div class="panel-head">
+        <div class="panel-title">导入与设置</div>
+        <span class="pill" id="load-state">未导入</span>
+      </div>
+      <div class="panel-body stack">
+        <div class="drop" id="drop">
+          <strong>拖入角色卡 JSON / PNG</strong>
+          <span class="hint">支持 SillyTavern / RP-Hub 常见 JSON，以及带 chara 元数据的 PNG。</span>
+          <input class="hidden" type="file" id="file" accept=".json,.png,application/json,image/png">
+          <button class="btn primary" id="pick">选择文件</button>
+        </div>
+
+        <div class="notice">基础体检无需配置 AI：字段、世界书、正则、Token 和开场白风险都在浏览器本地检查。</div>
+
+        <div class="field">
+          <label class="label">或粘贴 JSON</label>
+          <textarea class="textarea" id="paste" placeholder='{"name":"角色名","description":"..."}'></textarea>
+          <button class="btn" id="btn-parse-paste">解析粘贴内容</button>
+        </div>
+
+        <div class="panel" style="box-shadow:none">
+          <div class="panel-head"><div class="panel-title">可选：AI 深度诊断配置</div></div>
+          <div class="panel-body stack">
+            <div class="notice ai">只有点击“AI 体验诊断”才会请求接口。它会站在玩家视角模拟首轮游玩，重点看入口、节奏、理解成本、反馈感和卡点。</div>
+            <div class="field">
+              <label class="label">API 提供商</label>
+              <select class="select" id="api-provider">
+                <option value="stain">STAIN API · https://cdn.stain.cn/v1</option>
+                <option value="deepseek">DeepSeek · https://api.deepseek.com/v1</option>
+                <option value="openrouter">OpenRouter · https://openrouter.ai/api/v1</option>
+                <option value="siliconflow">SiliconFlow · https://api.siliconflow.cn/v1</option>
+                <option value="custom">自定义 · 手动输入 API 地址</option>
+              </select>
+            </div>
+            <div class="field hidden" id="api-url-wrap">
+              <label class="label">自定义 API 地址</label>
+              <input class="input mono" id="api-url" placeholder="https://api.example.com/v1">
+            </div>
+            <div class="field">
+              <label class="label">API Key</label>
+              <input class="input mono" id="api-key" type="password" placeholder="sk-...">
+            </div>
+            <div class="field">
+              <label class="label">模型</label>
+              <select class="select mono" id="api-model-select">
+                <option value="">先获取模型，或选择自定义</option>
+                <option value="__custom">自定义模型名</option>
+              </select>
+            </div>
+            <div class="field hidden" id="api-model-custom-wrap">
+              <label class="label">自定义模型</label>
+              <input class="input mono" id="api-model" placeholder="gpt-4.1-mini / deepseek-chat / ...">
+            </div>
+            <div class="row">
+              <button class="btn small" id="btn-save-api">保存到本机</button>
+              <button class="btn small" id="btn-fetch-models">获取模型</button>
+              <button class="btn primary small" id="btn-ai">AI 体验诊断</button>
+            </div>
+            <div class="ai-status" id="ai-status">未配置 AI 不影响上方本地体检；Key 只保存在当前浏览器。</div>
+          </div>
+        </div>
+
+        <div class="panel" style="box-shadow:none">
+          <div class="panel-head"><div class="panel-title">发布选项</div></div>
+          <div class="panel-body stack">
+            <div class="field">
+              <label class="label">审核档位</label>
+              <select class="select" id="audit-mode">
+                <option value="large">精品/资料库大卡：允许大体量世界书、分区 order 和重复召回词</option>
+                <option value="normal">普通发布卡：适合中小体量、通用模型和常规上下文</option>
+                <option value="strict">严格轻量卡：尽量压缩 Token，适合小上下文</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="label">推荐模型</label>
+              <input class="input" id="pub-model" placeholder="例如：Claude / GPT / DeepSeek，按作者实际填写">
+            </div>
+            <div class="field">
+              <label class="label">推荐设置</label>
+              <input class="input" id="pub-setting" placeholder="例如：上下文 32k，温度 0.8">
+            </div>
+            <div class="field">
+              <label class="label">版本号</label>
+              <input class="input" id="pub-version" placeholder="v1.0">
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div class="panel-title">体检总览</div>
+        <div class="row">
+          <button class="btn small" id="btn-rerun">重新体检</button>
+          <button class="btn good small" id="btn-copy-summary">复制摘要</button>
+        </div>
+      </div>
+      <div class="panel-body stack" id="overview">
+        <div class="empty">导入角色卡后会显示评分、风险、预算和发布建议。</div>
+      </div>
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-tab="all">全部问题</button>
+        <button class="tab" data-tab="square">广场标准</button>
+        <button class="tab" data-tab="structure">结构</button>
+        <button class="tab" data-tab="world">世界书</button>
+        <button class="tab" data-tab="regex">正则</button>
+        <button class="tab" data-tab="budget">Token</button>
+        <button class="tab" data-tab="opening">首轮体验</button>
+      </div>
+      <div class="panel-body">
+        <div id="tab-content" class="issue-list">
+          <div class="empty">暂无检查结果。</div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="right-col stack">
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title">发布说明生成器</div>
+          <button class="btn small" id="btn-copy-release">复制</button>
+        </div>
+        <div class="panel-body stack">
+          <div class="out" id="release-output">导入角色卡后自动生成发布说明。</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title">AI 玩家体验诊断</div>
+          <button class="btn small" id="btn-copy-ai">复制</button>
+        </div>
+        <div class="panel-body stack">
+          <div class="out" id="ai-output">未运行 AI 体验诊断。本地体检只查结构和风险；这里会让模型按玩家视角模拟“打开卡、读开场、理解玩法、做首轮行动、获得反馈”的体验。</div>
+        </div>
+      </section>
+    </aside>
+  </main>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var S={
+  raw:null,
+  card:null,
+  report:null,
+  activeTab:"all"
+};
+
+var $=function(id){return document.getElementById(id)};
+var qa=function(sel,root){return Array.from((root||document).querySelectorAll(sel))};
+var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]})};
+var clamp=function(n,a,b){return Math.max(a,Math.min(b,n))};
+var API_PROVIDERS={
+  stain:"https://cdn.stain.cn/v1",
+  deepseek:"https://api.deepseek.com/v1",
+  openrouter:"https://openrouter.ai/api/v1",
+  siliconflow:"https://api.siliconflow.cn/v1"
+};
+
+function toast(msg,type){
+  $("ai-status").textContent=msg;
+  $("ai-status").style.color=type==="bad"?"var(--bad)":type==="good"?"var(--good)":"var(--muted)";
+}
+
+function estimateTokens(text){
+  text=String(text||"");
+  if(!text.trim())return 0;
+  var cjk=(text.match(/[\u4e00-\u9fff]/g)||[]).length;
+  var latin=(text.match(/[A-Za-z0-9_]+/g)||[]).join("").length;
+  var punct=(text.match(/[^\sA-Za-z0-9_\u4e00-\u9fff]/g)||[]).length;
+  var spaces=(text.match(/\s+/g)||[]).length;
+  return Math.ceil(cjk*1.05+latin/4+punct*.45+spaces*.15);
+}
+
+function safeJsonParse(text){
+  var t=String(text||"").trim();
+  t=t.replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/,"").trim();
+  return JSON.parse(t);
+}
+
+function normalizeCard(input){
+  var root=input||{};
+  var data=root.data&&typeof root.data==="object"?root.data:root;
+  var ext=data.extensions||root.extensions||{};
+  var ch={
+    name:data.name||root.name||"",
+    description:data.description||root.description||"",
+    personality:data.personality||root.personality||"",
+    first_mes:data.first_mes||root.first_mes||"",
+    scenario:data.scenario||root.scenario||"",
+    mes_example:data.mes_example||root.mes_example||"",
+    creator_notes:data.creator_notes||root.creator_notes||"",
+    avatar:data.avatar||root.avatar||"",
+    system_prompt:data.system_prompt||root.system_prompt||"",
+    post_history_instructions:data.post_history_instructions||root.post_history_instructions||"",
+    tags:Array.isArray(data.tags)?data.tags:(Array.isArray(root.tags)?root.tags:[]),
+    alternate_greetings:Array.isArray(data.alternate_greetings)?data.alternate_greetings:(Array.isArray(root.alternate_greetings)?root.alternate_greetings:[]),
+    extensions:ext,
+    raw:root
+  };
+  ch.depth_prompt=normalizeDepthPrompt(data.depth_prompt||root.depth_prompt||ext.depth_prompt);
+  ch.worldInfo=normalizeWorldInfo(data.character_book||data.worldInfo||root.character_book||root.worldInfo||ext.worldInfo||ext.character_book);
+  ch.regexScripts=normalizeRegexScripts(data.regex_scripts||data.regexScripts||root.regex_scripts||root.regexScripts||ext.regex_scripts||ext.regexScripts);
+  ch.uiTemplates=normalizeUiTemplates(data.uiTemplates||data.ui_templates||root.uiTemplates||root.ui_templates||ext.uiTemplates||ext.ui_templates);
+  return ch;
+}
+
+function normalizeDepthPrompt(v){
+  if(!v)return {prompt:"",depth:null,role:""};
+  if(typeof v==="string")return {prompt:v,depth:null,role:""};
+  return {prompt:v.prompt||v.value||"",depth:v.depth!=null?Number(v.depth):null,role:v.role||""};
+}
+
+function normalizeWorldInfo(v){
+  if(!v)return [];
+  if(Array.isArray(v))return v.map(normWI);
+  if(Array.isArray(v.entries))return v.entries.map(normWI);
+  if(v.entries&&typeof v.entries==="object")return Object.keys(v.entries).map(function(k){return normWI(v.entries[k],k)});
+  if(v.book&&Array.isArray(v.book.entries))return v.book.entries.map(normWI);
+  return [];
+}
+
+function normWI(e,i){
+  e=e||{};
+  var keys=normalizeKeyList(e.keys);
+  if(!keys.length&&typeof e.keyInput==="string")keys=normalizeKeyList(e.keyInput);
+  var secondaryKeys=normalizeKeyList(e.secondary_keys||e.secondaryKeys||e.keysecondary||e.keySecondary||e.keys_secondary||e.optionalKeys||e.optional_keys);
+  return {
+    id:e.uid||e.id||i,
+    title:e.comment||e.name||e.title||("条目 "+(Number(i)+1||"")),
+    keys:keys,
+    secondaryKeys:secondaryKeys,
+    content:e.content||e.entry||"",
+    enabled:e.enabled!==false&&e.disable!==true,
+    constant:!!e.constant,
+    selective:!!e.selective,
+    position:e.position||e.insertion_position||"",
+    order:Number(e.order!=null?e.order:e.insertion_order!=null?e.insertion_order:100),
+    probability:Number(e.probability!=null?e.probability:100),
+    useProbability:!!e.useProbability,
+    depth:e.depth!=null?Number(e.depth):null,
+    group:e.group||"",
+    excludeRecursion:e.excludeRecursion!=null?!!e.excludeRecursion:(e.prevent_recursion!=null?!!e.prevent_recursion:null),
+    matchWholeWords:e.matchWholeWords!=null?!!e.matchWholeWords:(e.match_whole_words!=null?!!e.match_whole_words:null),
+    raw:e
+  };
+}
+
+function normalizeKeyList(v){
+  if(!v)return [];
+  if(typeof v==="string")return v.split(/[,，、\n]/).map(function(x){return x.trim()}).filter(Boolean);
+  if(Array.isArray(v))return v.map(function(x){return String(x||"").trim()}).filter(Boolean);
+  return [];
+}
+
+function normalizeRegexScripts(v){
+  if(!v)return [];
+  if(!Array.isArray(v))v=v.scripts||v.entries||[];
+  return (Array.isArray(v)?v:[]).map(function(r,i){
+    r=r||{};
+    var find=r.findRegex||r.regex||r.find||r.pattern||"";
+    var parts=parseRegexLiteral(find);
+    return {
+      id:r.id||i,
+      name:r.scriptName||r.name||("正则 "+(i+1)),
+      findRegex:find,
+      pattern:parts.pattern,
+      flags:parts.flags||r.flags||"",
+      replaceString:r.replaceString||r.replacement||r.replace||"",
+      disabled:!!r.disabled,
+      promptOnly:!!r.promptOnly||!!r.prompt_only,
+      markdownOnly:!!r.markdownOnly||!!r.markdown_only,
+      minDepth:r.minDepth!=null?Number(r.minDepth):null,
+      maxDepth:r.maxDepth!=null?Number(r.maxDepth):null,
+      placement:r.placement||[],
+      raw:r
+    };
+  });
+}
+
+function parseRegexLiteral(s){
+  s=String(s||"");
+  if(s[0]==="/"){
+    var i=s.lastIndexOf("/");
+    if(i>0)return {pattern:s.slice(1,i),flags:s.slice(i+1)};
+  }
+  return {pattern:s,flags:""};
+}
+
+function normalizeUiTemplates(v){
+  if(!v)return [];
+  if(!Array.isArray(v))v=v.templates||v.entries||[];
+  return (Array.isArray(v)?v:[]).map(function(t,i){
+    t=t||{};
+    return {name:t.name||t.title||("UI模板 "+(i+1)),html:t.html||t.template||"",vars:t.initialVariableState||t.variables||{},schema:t.variableSchema||""};
+  });
+}
+
+function addIssue(arr,cat,level,title,desc,score){
+  arr.push({cat:cat,level:level,title:title,desc:desc||"",score:score||0});
+}
+
+function auditMode(){
+  var el=$("audit-mode");
+  return el?el.value:"large";
+}
+
+function auditProfile(){
+  var mode=auditMode();
+  if(mode==="strict")return {mode:mode,large:false,strict:true,constantWarn:10,longEntryWarn:3000,longEntryBad:10000,keywordDup:2,orderDupScore:4};
+  if(mode==="normal")return {mode:mode,large:false,strict:false,constantWarn:20,longEntryWarn:4000,longEntryBad:10000,keywordDup:4,orderDupScore:2};
+  return {mode:mode,large:true,strict:false,constantWarn:60,longEntryWarn:5000,longEntryBad:10000,keywordDup:10,orderDupScore:0};
+}
+
+function analyze(card){
+  var issues=[];
+  var prof=auditProfile();
+  var allText=[
+    card.name,card.description,card.personality,card.first_mes,card.scenario,card.mes_example,
+    card.creator_notes,card.system_prompt,card.post_history_instructions,card.depth_prompt.prompt
+  ].join("\n");
+  var wiText=card.worldInfo.map(function(e){return [e.title,e.keys.join(","),e.content].join("\n")}).join("\n\n");
+  var rxText=card.regexScripts.map(function(r){return [r.name,r.findRegex,r.replaceString].join("\n")}).join("\n\n");
+  var uiText=card.uiTemplates.map(function(t){return [t.name,t.html,JSON.stringify(t.vars),t.schema].join("\n")}).join("\n\n");
+
+  checkStructure(card,issues,prof);
+  checkSquareStandard(card,issues,prof,{wiText:wiText,allText:allText});
+  checkWorld(card,issues,prof);
+  checkRegex(card,issues,prof);
+  checkVisualWhiteContainers(card,issues,prof);
+  checkBudget(card,issues,{allText:allText,wiText:wiText,rxText:rxText,uiText:uiText},prof);
+  checkOpening(card,issues,prof);
+
+  var penalty=issues.reduce(function(n,it){return n+it.score},0);
+  var score=clamp(100-penalty,0,100);
+  var budget={
+    base:estimateTokens(allText),
+    world:estimateTokens(wiText),
+    regex:estimateTokens(rxText),
+    ui:estimateTokens(uiText),
+    opening:estimateTokens(card.first_mes+"\n"+card.alternate_greetings.join("\n"))
+  };
+  budget.total=budget.base+budget.world+budget.regex+budget.ui;
+  var counts={
+    bad:issues.filter(function(x){return x.level==="bad"}).length,
+    warn:issues.filter(function(x){return x.level==="warn"}).length,
+    good:issues.filter(function(x){return x.level==="good"}).length,
+    info:issues.filter(function(x){return x.level==="info"}).length
+  };
+  return {score:score,issues:issues,budget:budget,counts:counts,mode:prof.mode};
+}
+
+function checkStructure(c,issues,prof){
+  if(!c.name.trim())addIssue(issues,"structure","bad","缺少角色名","发布页和导入平台都依赖 name 字段。",12);
+  if(!c.description.trim())addIssue(issues,"structure","bad","缺少角色描述 description","这是模型理解角色外观、身份和核心设定的主入口。",12);
+  if(!c.personality.trim())addIssue(issues,"structure","warn","缺少性格/行为设定 personality","角色容易只按开场白发挥，长期对话稳定性会下降。",7);
+  if(!c.first_mes.trim())addIssue(issues,"structure","bad","缺少首条开场白 first_mes","用户导入后无法快速进入剧情。",12);
+  if(!c.scenario.trim())addIssue(issues,"structure","warn","缺少场景 scenario","世界状态和用户处境可能需要在开场白里额外承担。",5);
+  if(!c.creator_notes.trim())addIssue(issues,"structure","warn","缺少作者说明 creator_notes","发布后使用者不容易知道玩法边界、推荐设置和注意事项。",4);
+  if(c.description.length>(prof.large?12000:5000))addIssue(issues,"structure","warn","description 很长","这是体量提示，不等于质量问题；确认它不是应该拆进世界书的资料正文。",prof.large?1:6);
+  if(c.personality.length>(prof.large?12000:4000))addIssue(issues,"structure","warn","personality 很长","大卡可以接受长人格/规则块，但建议确认不是把资料库内容塞进 personality。",prof.large?1:5);
+  if(c.system_prompt&&c.system_prompt.length>(prof.large?8000:2500))addIssue(issues,"structure","warn","系统提示词偏长","系统层内容过长会让后续补丁成本变高。",prof.large?1:4);
+  if(c.tags.length)addIssue(issues,"structure","good","标签已填写","标签数："+c.tags.length,0);
+}
+
+function checkSquareStandard(c,issues,prof,texts){
+  var wiChars=String(texts.wiText||"").replace(/\s/g,"").length;
+  var noteTags=extractHashTags(c.creator_notes);
+  var allTags=Array.from(new Set([].concat(c.tags||[],noteTags).filter(Boolean)));
+  var genericWords=["世界","剧情","角色","系统","设定","事件","关系","场景","状态","能力","规则"];
+  var genericHits=[];
+  var recursionUnknown=0,recursionRisk=0;
+  var constantLong=[],constantCount=0;
+  var linearPlots=[], encyclopediaEntries=0, interactiveEntries=0, shortEntries=0, manualLikeEntries=0, boilerplateEntries=0;
+
+  if(wiChars<15000){
+    addIssue(issues,"square","bad","广场硬性项：世界书总字数不足","审核标准要求世界书总字数最低 15000 字；当前估算约 "+wiChars+" 字。",18);
+  }else{
+    addIssue(issues,"square","good","广场硬性项：世界书字数达标","当前世界书估算约 "+wiChars+" 字，已超过 15000 字底线。",0);
+    if(wiChars<22000)addIssue(issues,"square","warn","世界书刚过字数底线","当前约 "+wiChars+" 字，只是越过 15000 字底线。若内容以原作百科/剧情梗概为主，仍可能被认为内容少或水。",7);
+  }
+
+  if(!allTags.length){
+    addIssue(issues,"square","bad","广场硬性项：缺少标签","审核标准要求添加合适标签。建议在作者注释使用 #标签 格式，例如 #大世界 #系统流。",12);
+  }else if(!noteTags.length){
+    addIssue(issues,"square","warn","标签可能未写入作者注释","检测到卡内 tags 字段，但作者注释里没有 #标签。广场规范强调作者注释使用 #标签 格式。",5);
+  }else{
+    addIssue(issues,"square","good","广场硬性项：作者注释标签存在","检测到作者注释标签："+noteTags.slice(0,10).join("、"),0);
+  }
+
+  c.worldInfo.forEach(function(e){
+    var blob=(e.title+" "+e.keys.join(" ")+" "+e.content);
+    if(e.enabled&&e.constant){
+      constantCount++;
+      if(e.content.length>(prof.large?5000:3000))constantLong.push(e.title);
+    }
+    if(isLinearPlotEntry(e))linearPlots.push(e.title||"未命名条目");
+    if(isEncyclopediaEntry(e))encyclopediaEntries++;
+    if(isManualLikeEntry(e))manualLikeEntries++;
+    if(isBoilerplateExpandedEntry(e))boilerplateEntries++;
+    if(/选择|分支|后果|可触发|事件池|随机|目标|任务|行动|反馈|判定|推进|失败|成功|玩家|{{user}}|用户|委托|线索|冷却|移出/.test(blob))interactiveEntries++;
+    if(e.content.length<300)shortEntries++;
+    e.keys.forEach(function(k){
+      var key=String(k||"").trim();
+      if(genericWords.indexOf(key)>=0)genericHits.push({key:key,title:e.title});
+    });
+    if(e.excludeRecursion==null)recursionUnknown++;
+    else if(e.excludeRecursion===false)recursionRisk++;
+  });
+
+  if(constantCount>(prof.large?60:20)){
+    addIssue(issues,"square",prof.large?"warn":"bad","广场规范：常驻条目偏多","审核标准要求常驻必须精简且强约束。当前常驻 "+constantCount+" 条，请确认不是把长篇设定常驻化。",prof.large?4:12);
+  }
+  if(constantLong.length){
+    addIssue(issues,"square","warn","广场规范：长篇设定疑似常驻","这些常驻条目较长："+constantLong.slice(0,8).join("、")+"。标准建议长篇设定改为选择性触发。",6);
+  }
+  if(linearPlots.length){
+    addIssue(issues,"square","bad","质量问题：线性剧情梗概当世界书","检测到疑似线性主线/章节节点条目："+linearPlots.slice(0,8).join("、")+"。审核反馈里说的“太线性、没用”通常指这种：它让 AI 按原剧情流水账推进，而不是给玩家可互动的事件池、分支和后果。",18);
+  }
+  if(c.worldInfo.length){
+    var encRatio=encyclopediaEntries/c.worldInfo.length;
+    var interactiveRatio=interactiveEntries/c.worldInfo.length;
+    var avgChars=wiChars/c.worldInfo.length;
+    var manualRatio=manualLikeEntries/c.worldInfo.length;
+    var boilerRatio=boilerplateEntries/c.worldInfo.length;
+    if(c.worldInfo.length<20&&wiChars>25000&&avgChars>1500){
+      addIssue(issues,"square","bad","质量问题：少量大块世界书堆字数","世界书只有 "+c.worldInfo.length+" 条，但总字数约 "+wiChars+"，平均每条约 "+Math.round(avgChars)+" 字。审核容易认为这是把说明书/设定大段塞进世界书，而不是精细拆分的动态上下文。",18);
+    }
+    if(boilerRatio>.65){
+      addIssue(issues,"square","bad","质量问题：AI扩写/完整版水文感严重","约 "+Math.round(boilerRatio*100)+"% 条目出现“完整版/详细版/完整解析/手册/指南/大量分隔线”等痕迹。此类写法很容易被认为是 AI 扩写堆字数，不是经过打磨的有效世界书。",16);
+    }else if(boilerRatio>.35){
+      addIssue(issues,"square","warn","质量问题：AI扩写/完整版水文感明显","约 "+Math.round(boilerRatio*100)+"% 条目出现“完整版/详细版/完整解析/手册/指南/大量分隔线”等痕迹。此类写法容易被认为是 AI 扩写堆字数，建议压缩空话，保留可触发信息和玩法裁定。",10);
+    }
+    if(manualRatio>.45&&interactiveRatio<.65){
+      addIssue(issues,"square","warn","质量问题：规则说明多，实战循环不足","约 "+Math.round(manualRatio*100)+"% 条目像规则手册/执行指引。机制卡需要让玩家知道每轮做什么、AI如何出题和反馈；如果只是说明很多，审核会觉得可玩循环没有落地。",8);
+    }
+    if(encRatio>.45&&interactiveRatio<.45){
+      addIssue(issues,"square","warn","质量问题：百科设定多，玩法条目少","约 "+Math.round(encRatio*100)+"% 条目像人物/设定百科，但互动、分支、事件池、反馈类条目不足。容易被认为“内容水”，因为它记了设定，却没有形成可玩的循环。",10);
+    }
+    var shortRatio=shortEntries/c.worldInfo.length;
+    if(shortRatio>.8){
+      addIssue(issues,"square","bad","审核标准：短世界书条目过多","少于 300 字的世界书条目占 "+Math.round(shortRatio*100)+"%，超过 80%。这通常意味着世界书拆得碎但信息密度不足，容易被判定为内容少或水。",14);
+    }else if(shortRatio>.6){
+      addIssue(issues,"square","warn","质量问题：短条目占比偏高","少于 300 字的世界书条目占 "+Math.round(shortRatio*100)+"%。短条目不是错误，但比例过高且缺少玩法规则/事件池支撑时，容易显得只是资料摘抄。",6);
+    }
+  }
+  if(/凑合|随便|没打磨|一键|模板生成|懒得|没时间/.test(c.creator_notes)){
+    addIssue(issues,"square","warn","发布说明暴露打磨不足","作者注释里出现“凑合/没打磨”等表达。广场标准强调用心打磨，这类话会放大审核员对低质的判断。",8);
+  }
+  if(genericHits.length){
+    var sample=genericHits.slice(0,12).map(function(x){return "「"+x.key+"」@"+x.title}).join("、");
+    addIssue(issues,"square","bad","广场规范：泛词单独作为触发词","标准禁止“世界/剧情/角色/系统/设定/事件/关系/场景/状态/能力/规则”等泛词单独触发。命中："+sample,12);
+  }else if(c.worldInfo.length){
+    addIssue(issues,"square","good","广场规范：未发现典型泛词单独触发","已检查常见泛词触发词。",0);
+  }
+  var knownRecursion=c.worldInfo.length-recursionUnknown;
+  if(knownRecursion>0&&recursionRisk===knownRecursion){
+    addIssue(issues,"square","bad","广场规范：全部条目均可递归","审核底线是不能全部开启可递归。当前可识别的 "+knownRecursion+" 条全部未开启不可递归，应至少收束递归范围。",12);
+  }else if(recursionRisk){
+    addIssue(issues,"square","warn","广场规范：存在可递归条目","当前检测到 "+recursionRisk+" 条可递归。可递归不是必错，但需要作者确认递归链路是否清晰、是否会死循环或反复注入。",4);
+  }else if(recursionUnknown&&c.worldInfo.length){
+    addIssue(issues,"square","info","广场规范：递归设置无法完全识别","当前格式里有 "+recursionUnknown+" 条未识别到 excludeRecursion 字段，请在目标平台确认“不可被递归”设置。",0);
+  }else if(c.worldInfo.length){
+    addIssue(issues,"square","good","广场规范：递归设置未见明显风险","未检测到明确可递归条目。",0);
+  }
+
+  addIssue(issues,"square","info","人工红线自查","封面/插图违规、涉政敏感、抄袭搬运、重复上传、特定题材低质等红线无法由本地程序可靠判定，发布前需作者人工确认。",0);
+  if(!hasUiLikeFeature(c)){
+    addIssue(issues,"square","info","UI 不是硬性标准","标准说明 UI 非硬性要求；无 UI 不等于不通过，但脑洞和世界书需要有足够表现。",0);
+  }
+}
+
+function extractHashTags(text){
+  return Array.from(String(text||"").matchAll(/(^|\s)#([^\s#，,、]+)/g)).map(function(m){return m[2]}).filter(Boolean);
+}
+
+function hasUiLikeFeature(c){
+  return !!(c.uiTemplates.length||c.regexScripts.some(function(r){return /<button|<section|<div|class=|style=|状态|面板|地图|按钮|属性/.test(r.replaceString+r.name)}));
+}
+
+function isLinearPlotEntry(e){
+  var t=(e.title+" "+e.content);
+  var titleHit=/主线|剧情|节点|章节|电影|TV|原作|第[一二三四五六七八九十\d]+[集幕章]/.test(t);
+  var flowHit=/从上向下|按.*发展|依次|流水|主线节点|剧情节点|承TV|幕一|幕二|幕三|第\d+集|最终战|大结局/.test(t);
+  var weakTrigger=!!e.constant||!e.keys.length;
+  return titleHit&&flowHit&&weakTrigger;
+}
+
+function isEncyclopediaEntry(e){
+  var t=e.content||"";
+  var factMarkers=(t.match(/■|：|:|——|定位|经历|性格|能力|武器|召唤人|属性|外形|作用|背景/g)||[]).length;
+  var playMarkers=(t.match(/选择|分支|后果|事件池|随机|目标|任务|反馈|判定|推进|失败|成功|冷却|移出/g)||[]).length;
+  return factMarkers>=4&&playMarkers<=1;
+}
+
+function isManualLikeEntry(e){
+  var t=(e.title+" "+e.content);
+  var markers=(t.match(/规则|机制|指引|流程|步骤|参数|阈值|系统|执行|必须|应当|需要|触发条件|判定|更新|数值|状态/g)||[]).length;
+  var story=(t.match(/场景|角色|事件|NPC|地点|对白|线索|委托|遭遇|后果|分支/g)||[]).length;
+  return markers>=8&&markers>story;
+}
+
+function isBoilerplateExpandedEntry(e){
+  var t=(e.title+" "+e.content);
+  var boiler=(t.match(/完整版|详细版|完整解析|完整设定|完整列表|完整.*手册|权威指南|总纲|前言|以下内容|详细说明|={5,}|-{5,}|【.*?】/g)||[]).length;
+  return boiler>=5||(/完整版|详细版|完整解析|完整.*手册/.test(t)&&t.length>1200);
+}
+
+function checkWorld(c,issues,prof){
+  var list=c.worldInfo;
+  if(!list.length){addIssue(issues,"world","warn","没有世界书条目","轻量卡可以没有世界书；长线剧情、势力、地点和规则建议拆分。",8);return}
+  var disabled=list.filter(function(e){return !e.enabled}).length;
+  var constant=list.filter(function(e){return e.enabled&&e.constant}).length;
+  var dynamic=list.filter(function(e){return e.enabled&&!e.constant}).length;
+  addIssue(issues,"world","good","世界书已配置","共 "+list.length+" 条；常驻 "+constant+" 条，动态 "+dynamic+" 条，禁用 "+disabled+" 条。",0);
+  if(constant>prof.constantWarn)addIssue(issues,"world",prof.large?"info":"warn","常驻世界书偏多","常驻 "+constant+" 条。资料库大卡常见这种设计；重点确认常驻条目是否真的每轮都需要。",prof.large?0:8);
+  checkWorldTriggerHealth(list,issues,prof);
+  var orders={};
+  list.forEach(function(e,i){
+    if(e.enabled&&!e.constant&&!e.keys.length)addIssue(issues,"world",prof.large?"warn":"bad","动态条目没有关键词","「"+e.title+"」不是常驻，但没有 keys，通常不会触发。",prof.large?3:10);
+    if(e.constant&&e.keys.length>(prof.large?30:8))addIssue(issues,"world",prof.large?"info":"warn","常驻条目关键词很多","「"+e.title+"」是常驻，关键词主要作说明；资料库大卡中这通常不是阻断项。",prof.large?0:3);
+    if(e.content.length<20)addIssue(issues,"world","warn","世界书内容过短","「"+e.title+"」内容少于 20 字，可能只是占位或未写完。",4);
+    if(e.content.length>prof.longEntryBad)addIssue(issues,"world","bad","世界书单条超长","「"+e.title+"」超过 10000 字。审核通常会直接判高风险：应拆分为多个主题、事件或资料条目。",14);
+    else if(e.content.length>prof.longEntryWarn)addIssue(issues,"world","warn","世界书单条偏长","「"+e.title+"」超过 "+prof.longEntryWarn+" 字。两三千字通常可以接受；四五千字以上建议按内容类型人工复核。",5);
+    if(e.useProbability&&e.probability<100&&e.constant)addIssue(issues,"world","warn","常驻条目使用概率触发","「"+e.title+"」是常驻却不是 100% 概率，关键规则可能漏入上下文。",5);
+    if(e.position==="at_depth"&&(e.depth==null||e.depth<0))addIssue(issues,"world","bad","at_depth 缺少有效深度","「"+e.title+"」需要设置 depth。",7);
+    if(e.enabled){
+      var key=String(e.order);
+      orders[key]=orders[key]||[];
+      orders[key].push(e.title);
+    }
+  });
+  Object.keys(orders).forEach(function(k){
+    if(orders[k].length>1)addIssue(issues,"world",prof.large?"info":"warn","世界书 order 重复","order="+k+" 的条目有："+orders[k].slice(0,6).join("、")+"。大卡常用相同 order 做分区，不一定是错误。",prof.orderDupScore);
+  });
+  var keyMap={};
+  list.forEach(function(e){
+    e.keys.forEach(function(k){
+      var kk=k.toLowerCase();
+      keyMap[kk]=keyMap[kk]||[];
+      keyMap[kk].push(e.title);
+    });
+  });
+  Object.keys(keyMap).forEach(function(k){
+    if(k&&keyMap[k].length>prof.keywordDup)addIssue(issues,"world",prof.large?"info":"warn","关键词重复召回提示","关键词「"+k+"」出现在 "+keyMap[k].length+" 个条目里。资料库大卡可能有意用它聚合召回；只在实际一次触发过多时处理。",prof.large?0:4);
+  });
+}
+
+function checkWorldTriggerHealth(list,issues,prof){
+  var dynamic=list.filter(function(e){return e.enabled&&!e.constant});
+  if(!dynamic.length)return;
+  var noKeys=[], lowValueNoKeys=[], weakKeys=[], tooManyKeys=[], keyMap={}, entryTriggerStats=[], singleKeyEntries=[];
+  dynamic.forEach(function(e){
+    var keys=(e.keys||[]).concat(e.secondaryKeys||[]).map(normKey).filter(Boolean);
+    keys=Array.from(new Set(keys));
+    var interactive=/选择|分支|后果|可触发|事件池|随机|目标|任务|行动|反馈|判定|推进|失败|成功|玩家|{{user}}|用户|委托|线索|冷却|移出/.test(e.title+" "+e.content);
+    if(!keys.length){
+      noKeys.push(e.title);
+      if(!interactive&&e.content.length<800)lowValueNoKeys.push(e.title);
+    }
+    if(keys.length===1)singleKeyEntries.push({entry:e,key:keys[0]});
+    if(keys.length>(prof.large?18:12))tooManyKeys.push({title:e.title,count:keys.length});
+    keys.forEach(function(k){
+      if(isWeakTriggerKey(k))weakKeys.push({key:k,title:e.title});
+      keyMap[k]=keyMap[k]||[];
+      keyMap[k].push(e);
+    });
+    entryTriggerStats.push({entry:e,keys:keys});
+  });
+
+  if(noKeys.length){
+    addIssue(issues,"world",lowValueNoKeys.length?"warn":"info","动态世界书无关键词","检测到 "+noKeys.length+" 条动态条目没有关键词。无关键词不一定错，但若不是由平台特殊逻辑/递归/手动注入触发，就可能永不触发。示例："+noKeys.slice(0,8).join("、"),lowValueNoKeys.length?5:0);
+  }
+  if(tooManyKeys.length){
+    addIssue(issues,"world","warn","单条世界书关键词过多","检测到 "+tooManyKeys.length+" 条动态条目关键词很多。关键词过多会导致触发噪音变大，建议保留专有名词、别名、地点/组织/物品/事件名。示例："+tooManyKeys.slice(0,6).map(function(x){return x.title+"("+x.count+")"}).join("、"),5);
+  }
+  if(weakKeys.length){
+    var weakSample=weakKeys.slice(0,10).map(function(x){return "「"+x.key+"」@"+x.title}).join("、");
+    addIssue(issues,"world","warn","弱触发词/泛触发词较多","这些关键词过短或过泛，容易误触发："+weakSample,6);
+  }
+  if(singleKeyEntries.length){
+    var singleRatio=singleKeyEntries.length/dynamic.length;
+    var singleSample=singleKeyEntries.slice(0,10).map(function(x){return "「"+x.key+"」@"+x.entry.title}).join("、");
+    if(singleKeyEntries.length>=80||(singleRatio>.75&&singleKeyEntries.length>=30)){
+      addIssue(issues,"world","bad","大量单关键词世界书","动态世界书里有 "+singleKeyEntries.length+" 条只有 1 个触发词，占比约 "+Math.round(singleRatio*100)+"%。这类卡很容易出现“一句话触发一堆条目/人物”的问题，应补专有组合词、别名或场景条件。示例："+singleSample,14);
+    }else if(singleRatio>.55&&singleKeyEntries.length>=20){
+      addIssue(issues,"world","warn","单关键词条目偏多","动态世界书里有 "+singleKeyEntries.length+" 条只有 1 个触发词，占比约 "+Math.round(singleRatio*100)+"%。建议抽查是否存在过泛词、人物共用词或同词批量触发。示例："+singleSample,7);
+    }
+  }
+
+  var severeHotKeys=[], hotKeys=[], tinyKeys=[];
+  Object.keys(keyMap).forEach(function(k){
+    var entries=keyMap[k];
+    var chars=entries.reduce(function(n,e){return n+String(e.content||"").length},0);
+    var tokens=estimateTokens(entries.map(function(e){return e.content}).join("\n"));
+    var personLike=entries.filter(isPersonLikeWorldEntry).length;
+    if(entries.length>=20||chars>=30000||personLike>=10){
+      severeHotKeys.push({key:k,count:entries.length,personLike:personLike,chars:chars,tokens:tokens,titles:entries.map(function(e){return e.title}).slice(0,8)});
+    }else if(entries.length>=(prof.large?8:5)||chars>=(prof.large?12000:7000)||tokens>=(prof.large?9000:5000)){
+      hotKeys.push({key:k,count:entries.length,chars:chars,tokens:tokens,titles:entries.map(function(e){return e.title}).slice(0,6)});
+    }
+    if(entries.length===1&&chars<180){
+      tinyKeys.push({key:k,title:entries[0].title,chars:chars});
+    }
+  });
+  severeHotKeys.sort(function(a,b){return b.count-a.count||b.chars-a.chars});
+  if(severeHotKeys.length){
+    addIssue(issues,"world","bad","同一关键词触发过多条目","这些词一次会召回过多世界书，可能出现“同一个词触发所有人物/一句善终触发一批人物”的审核问题："+severeHotKeys.slice(0,6).map(function(x){return "「"+x.key+"」"+x.count+"条/"+x.personLike+"个人物疑似条目"}).join("、")+"。建议改成专名、全名、关系组合词或剧情阶段词。",16);
+  }
+  hotKeys.sort(function(a,b){return b.tokens-a.tokens||b.count-a.count});
+  if(hotKeys.length){
+    addIssue(issues,"world","warn","单次触发可能带入过多内容","这些关键词一次可能触发很多条或大量内容："+hotKeys.slice(0,6).map(function(x){return "「"+x.key+"」"+x.count+"条/"+x.chars+"字"}).join("、")+"。如果是聚合召回设计可忽略，否则建议拆关键词或收窄触发词。",7);
+  }
+  if(tinyKeys.length>Math.max(8,dynamic.length*.18)){
+    addIssue(issues,"world","info","部分触发内容可能偏少","检测到 "+tinyKeys.length+" 个关键词只会触发很少内容。不是硬伤，但如果这些是核心玩法词，玩家触发后可能感觉反馈不足。",0);
+  }
+
+  var keyCount=Object.keys(keyMap).length;
+  var avgKeys=dynamic.length?entryTriggerStats.reduce(function(n,x){return n+x.keys.length},0)/dynamic.length:0;
+  if(keyCount<dynamic.length*.45&&dynamic.length>20){
+    addIssue(issues,"world","warn","触发覆盖偏窄","动态世界书 "+dynamic.length+" 条，但唯一触发词约 "+keyCount+" 个。若不是刻意用少量入口聚合召回，可能导致很多条目不容易被自然触发。",5);
+  }
+  if(avgKeys>10){
+    addIssue(issues,"world","info","平均关键词偏多","动态条目平均约 "+avgKeys.toFixed(1)+" 个关键词。关键词多不一定错，但建议确认不是为了凑触发而铺太宽。",0);
+  }
+}
+
+function normKey(k){
+  return String(k||"").trim().replace(/\s+/g," ");
+}
+
+function isWeakTriggerKey(k){
+  if(!k)return false;
+  var generic=["世界","剧情","角色","系统","设定","事件","关系","场景","状态","能力","规则","人物","地点","道具","任务","目标","行动","选择","信息","线索","敌人","剧情线"];
+  if(generic.indexOf(k)>=0)return true;
+  if(/^[\u4e00-\u9fff]{1,2}$/.test(k))return true;
+  if(/^(什么|有人|东西|地方|这里|那里|现在|今天|明天|任务|剧情|系统|状态)$/.test(k))return true;
+  return false;
+}
+
+function isPersonLikeWorldEntry(e){
+  var title=String(e.title||"").trim();
+  var text=title+"\n"+String(e.content||"");
+  var markers=(text.match(/人物|角色|身份|性格|经历|生平|外貌|关系|结局|善终|能力|立场|阵营|官职|家族|年龄|势力|派系/g)||[]).length;
+  if(markers>=3)return true;
+  if(/^[\u4e00-\u9fff·]{2,10}$/.test(title)&&/(身份|性格|经历|关系|结局|善终|生平|官职|阵营)/.test(text))return true;
+  return false;
+}
+
+function buildWorldTriggerStats(list){
+  var dynamic=list.filter(function(e){return e.enabled&&!e.constant});
+  var keyMap={}, noKey=0, weak=0;
+  dynamic.forEach(function(e){
+    var keys=(e.keys||[]).concat(e.secondaryKeys||[]).map(normKey).filter(Boolean);
+    keys=Array.from(new Set(keys));
+    if(!keys.length)noKey++;
+    keys.forEach(function(k){
+      if(isWeakTriggerKey(k))weak++;
+      keyMap[k]=keyMap[k]||[];
+      keyMap[k].push(e);
+    });
+  });
+  var hot=Object.keys(keyMap).map(function(k){
+    var entries=keyMap[k];
+    return {key:k,count:entries.length,chars:entries.reduce(function(n,e){return n+String(e.content||"").length},0),titles:entries.map(function(e){return e.title}).slice(0,5)};
+  }).sort(function(a,b){return b.chars-a.chars||b.count-a.count}).slice(0,10);
+  return {dynamicEntries:dynamic.length,uniqueKeys:Object.keys(keyMap).length,noKeyDynamic:noKey,weakKeys:weak,hotKeys:hot};
+}
+
+function checkRegex(c,issues,prof){
+  var list=c.regexScripts;
+  if(!list.length){addIssue(issues,"regex","info","没有正则脚本","如果卡不依赖状态栏或替换渲染，这是正常的。",0);return}
+  var enabled=list.filter(function(r){return !r.disabled}).length;
+  addIssue(issues,"regex","good","正则脚本已配置","共 "+list.length+" 条；启用 "+enabled+" 条。",0);
+  list.forEach(function(r){
+    if(r.disabled)return;
+    if(!r.pattern)addIssue(issues,"regex","bad","正则缺少匹配表达式","「"+r.name+"」没有 findRegex。",10);
+    else{
+      try{new RegExp(r.pattern,r.flags.replace(/[^gimsuy]/g,""))}
+      catch(e){
+        var compat=isRegexCompatPattern(r.pattern);
+        addIssue(issues,"regex",compat||prof.large?"warn":"bad",compat?"正则 JS 兼容提示":"正则语法错误","「"+r.name+"」在浏览器 JS 检查器里无法编译："+e.message+"。如果目标平台支持该写法，可忽略；建议实机确认渲染。",compat||prof.large?1:12);
+      }
+    }
+    if(r.pattern===".*"||r.pattern==="[\\s\\S]*"||/^\(?\.\*\)?/.test(r.pattern))addIssue(issues,"regex","bad","正则可能吞掉整段回复","「"+r.name+"」使用过宽匹配，容易把正文全部替换。",12);
+    if(/\\s\\S\]\*\??/.test(r.pattern)||/\.\*\??/.test(r.pattern)){
+      if(!/\$[1-9]/.test(r.replaceString)&&r.replaceString.length>120)addIssue(issues,"regex","warn","宽匹配但替换缺少捕获引用","「"+r.name+"」可能只输出固定模板，吞掉原内容。",7);
+    }
+    var caps=countCaptureGroups(r.pattern);
+    var refs=Array.from(r.replaceString.matchAll(/\$(\d+)/g)).map(function(m){return Number(m[1])});
+    refs.forEach(function(n){
+      if(n>caps)addIssue(issues,"regex","bad","替换引用不存在的捕获组","「"+r.name+"」使用 $"+n+"，但正则约只有 "+caps+" 个捕获组。",10);
+    });
+    if(r.promptOnly&&r.markdownOnly)addIssue(issues,"regex","warn","promptOnly 与 markdownOnly 同时开启","「"+r.name+"」的作用范围可能和预期不一致。",4);
+    if(r.minDepth!=null&&r.maxDepth!=null&&r.minDepth>r.maxDepth)addIssue(issues,"regex","bad","正则深度范围反了","「"+r.name+"」minDepth 大于 maxDepth。",8);
+    if(/<script|onerror=|onclick=|onload=/i.test(r.replaceString))addIssue(issues,"regex","warn","替换内容含脚本或内联事件","「"+r.name+"」发布前建议确认平台是否允许，以及是否有安全风险。",7);
+  });
+}
+
+function checkVisualWhiteContainers(c,issues,prof){
+  var sources=[];
+  c.regexScripts.forEach(function(r){
+    if(!r.disabled&&r.replaceString)sources.push({kind:"正则",name:r.name,text:r.replaceString,wide:r.pattern===".*"||r.pattern==="[\\s\\S]*"||/^\(?\.\*\)?/.test(r.pattern)||/\\s\\S\]\*/.test(r.pattern)||/\.\*/.test(r.pattern)});
+  });
+  c.uiTemplates.forEach(function(t){
+    var text=[t.html,JSON.stringify(t.vars||{}),String(t.schema||"")].join("\n");
+    if(text.trim())sources.push({kind:"UI模板",name:t.name,text:text,wide:false});
+  });
+  if(!sources.length)return;
+  var risky=[], severe=[];
+  sources.forEach(function(s){
+    var risk=whiteContainerRisk(s.text);
+    if(!risk)return;
+    var item={kind:s.kind,name:s.name,reason:risk};
+    if(s.wide||risk.severe)severe.push(item);
+    else risky.push(item);
+  });
+  if(severe.length){
+    addIssue(issues,"regex","bad","正则/UI 可能制造正文白边","检测到替换模板或 UI 模板里有白底/浅边框的大容器，且可能包住整段正文："+severe.slice(0,6).map(function(x){return x.kind+"「"+x.name+"」("+x.reason.label+")"}).join("、")+"。这类“正文白底白边/容器白边”是常见审核观感问题，建议改为透明背景、弱化边框，或只包局部信息层。",12);
+  }
+  if(risky.length){
+    addIssue(issues,"regex","warn","正则/UI 有白色容器样式","检测到白底、浅边框或卡片容器样式："+risky.slice(0,6).map(function(x){return x.kind+"「"+x.name+"」("+x.reason.label+")"}).join("、")+"。不一定错误，但建议实机确认是否造成正文白边、白框或和聊天背景割裂。",5);
+  }
+}
+
+function whiteContainerRisk(text){
+  text=String(text||"");
+  if(!/<(?:div|section|article|main|aside|table|style)\b/i.test(text)&&!/class\s*=|style\s*=|background|border|box-shadow/i.test(text))return null;
+  var compact=text.replace(/\s+/g," ").toLowerCase();
+  var whiteBg=/background(?:-color)?\s*:\s*(?:#fff(?:fff)?\b|white\b|rgb\(\s*255\s*,\s*255\s*,\s*255\s*\)|rgba\(\s*255\s*,\s*255\s*,\s*255\s*,\s*(?:0\.[7-9]\d*|1)\s*\))/i.test(compact)||/\bbg-white\b/.test(compact);
+  var paleBg=/background(?:-color)?\s*:\s*(?:#f[7-9a-f][0-9a-f]{4}\b|#f[7-9a-f][0-9a-f]\b|rgba\(\s*255\s*,\s*255\s*,\s*255\s*,\s*0\.[3-6]\d*\s*\))/i.test(compact)||/\bbg-(?:slate|gray|zinc|neutral|stone)-(?:50|100)\b/.test(compact);
+  var whiteBorder=/border(?:-[a-z-]+)?\s*:\s*[^;]*(?:#fff(?:fff)?\b|white\b|rgba\(\s*255\s*,\s*255\s*,\s*255\s*,\s*(?:0\.[5-9]\d*|1)\s*\))/i.test(compact);
+  var paleBorder=/border(?:-[a-z-]+)?\s*:\s*[^;]*(?:#e[0-9a-f]{5}\b|#f[0-9a-f]{5}\b|rgba\(\s*(?:220|230|240|245|250|255)\s*,\s*(?:220|230|240|245|250|255)\s*,\s*(?:220|230|240|245|250|255)\s*,)/i.test(compact)||/\bborder-(?:white|slate-100|gray-100|zinc-100|neutral-100)\b/.test(compact);
+  var bigBox=/(padding|margin|border-radius|box-shadow|max-width|min-height|width\s*:\s*(?:100%|[6-9]\d%|[4-9]\d{2}px)|overflow\s*:)/i.test(compact);
+  var bodyWrap=/\$0|\$&|\$1|正文|content|message|mes_text|chat|reply|回复|文本/.test(compact);
+  if((whiteBg||whiteBorder)&&(bigBox||bodyWrap))return {label:"白底/白边正文容器",severe:true};
+  if((paleBg||paleBorder)&&(bigBox||bodyWrap))return {label:"浅色容器边框",severe:false};
+  if((whiteBg||whiteBorder||paleBg||paleBorder)&&/<(?:div|section|article|main)\b/i.test(text))return {label:"浅色块容器",severe:false};
+  return null;
+}
+
+function isRegexCompatPattern(pattern){
+  return /\(\?[a-z-]+[:)]/i.test(pattern)||/\(\?<[=!]/.test(pattern);
+}
+
+function countCaptureGroups(pattern){
+  var n=0,esc=false,cls=false;
+  for(var i=0;i<pattern.length;i++){
+    var ch=pattern[i],next=pattern[i+1];
+    if(esc){esc=false;continue}
+    if(ch==="\\"){esc=true;continue}
+    if(ch==="["){cls=true;continue}
+    if(ch==="]"){cls=false;continue}
+    if(cls)continue;
+    if(ch==="("&&next!=="?")n++;
+  }
+  return n;
+}
+
+function checkBudget(c,issues,texts,prof){
+  var base=estimateTokens(texts.allText),wi=estimateTokens(texts.wiText),rx=estimateTokens(texts.rxText),ui=estimateTokens(texts.uiText);
+  var total=base+wi+rx+ui;
+  addIssue(issues,"budget","info","Token 仅作体量统计","估算约 "+total+" token。审核不按 token 大小扣分；这里仅供作者了解卡片体量，实际 tokenizer 会有偏差。",0);
+}
+
+function openingKind(text){
+  text=String(text||"");
+  var lower=text.toLowerCase();
+  var htmlTags=(text.match(/<\/?[a-z][\s\S]*?>/gi)||[]).length;
+  var buttons=(text.match(/<button|data-|onclick=|选项|选择|建档|身份线|开始|进入|开局/g)||[]).length;
+  var anim=(text.match(/animation|@keyframes|transition|splash|cover|封面|开场动画|片头|intro/gi)||[]).length;
+  if(htmlTags>=8&&(buttons>=2||/建档|身份线|选择朝代|选择身份|创建角色|档案/.test(text)))return "builder";
+  if(htmlTags>=8&&(anim>=2||/<style|class=|background|position:|transform:/i.test(text)))return "animation";
+  return "story";
+}
+
+function openingKindLabel(kind){
+  return kind==="builder"?"建档器/选择器开场":kind==="animation"?"开场动画/封面演出":"剧情正文开场";
+}
+
+function checkOpening(c,issues){
+  var t=c.first_mes||"";
+  if(!t.trim())return;
+  var tok=estimateTokens(t);
+  var kind=openingKind(t);
+  addIssue(issues,"opening","info","开场类型："+openingKindLabel(kind),"主开场估算约 "+tok+" token。不同开场类型不能按同一长度标准判断。",0);
+  if(tok>1800&&kind==="story")addIssue(issues,"opening","warn","剧情正文开场偏长","估算约 "+tok+" token。若这是纯剧情正文，用户第一轮可操作空间会变小。",8);
+  if(tok>5000&&kind==="builder")addIssue(issues,"opening","info","建档器体量较大","这是建档/身份选择入口，长于普通剧情开场很常见。建议发布说明写清“建档后如何进入正文”，而不是简单缩短。",0);
+  if(tok>5000&&kind==="animation")addIssue(issues,"opening","info","开场演出体量较大","开场动画/封面演出常会很长。建议提供纯文本降级说明或跳过演出入口。",0);
+  if(!/{{user}}|<user>|你|您|玩家|调查员|主角|选择|建档|开局|进入|身份|朝代/.test(t))addIssue(issues,"opening","warn","开场白缺少明确用户入口","建议给用户一个可以接话、选择或行动的位置。",5);
+  if(/{{char}}|<char>/.test(t)&&!c.name)addIssue(issues,"opening","warn","开场白使用角色占位但角色名为空","导入平台可能显示异常。",4);
+  if(/你(?:说|回答|点头|走|拿|亲|抱|攻击|决定)/.test(t))addIssue(issues,"opening","warn","疑似替用户行动","开场白里直接写用户动作，会降低代入感。",6);
+  if(/待补|TODO|未完成|这里写|占位/.test(t+c.description+c.personality))addIssue(issues,"opening","bad","发现未完成占位词","卡内仍有 TODO/待补/占位类文本，发布前应清理。",10);
+  if(c.alternate_greetings.length)addIssue(issues,"opening","good","有备选开场白","备选数量："+c.alternate_greetings.length,0);
+  else addIssue(issues,"opening","info","没有备选开场白","不是必需项；建档器/动画型开场尤其不一定需要备选。若要补，优先补纯文本降级入口。",0);
+}
+
+function render(){
+  var c=S.card,r=S.report;
+  if(!c||!r){
+    $("overview").innerHTML='<div class="empty">导入角色卡后会显示评分、风险、预算和发布建议。</div>';
+    $("tab-content").innerHTML='<div class="empty">暂无检查结果。</div>';
+    $("release-output").textContent="导入角色卡后自动生成发布说明。";
+    return;
+  }
+  $("load-state").textContent=c.name||"已导入";
+  $("load-state").className="pill good";
+  var totalIssues=r.counts.bad+r.counts.warn+r.counts.info;
+  $("overview").innerHTML=
+    '<div class="score-wrap">'+
+      '<div class="score-ring" style="--score:'+r.score+'"><div class="score-inner"><div><div class="score-num">'+r.score+'</div><div class="score-label">验收分</div></div></div></div>'+
+      '<div class="stack">'+
+        '<div class="card-meta">'+
+          stat(c.worldInfo.length,"世界书条目")+stat(c.regexScripts.length,"正则脚本")+stat(c.uiTemplates.length,"UI模板")+stat(r.budget.total,"估算Token")+
+        '</div>'+
+        '<div class="summary-grid">'+
+          '<span class="pill bad">严重 '+r.counts.bad+'</span>'+
+          '<span class="pill warn">提醒 '+r.counts.warn+'</span>'+
+          '<span class="pill good">通过 '+r.counts.good+'</span>'+
+          '<span class="pill">合计 '+totalIssues+'</span>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="notice '+(r.mode==="large"?"ai":"")+'">当前审核档位：'+auditModeLabel(r.mode)+'。评分只代表发布维护风险，不等于作品质量。</div>'+
+    '<div class="section-title">Token 预算拆分</div>'+
+    budgetRow("基础设定",r.budget.base,r.budget.total,"base")+
+    budgetRow("世界书",r.budget.world,r.budget.total,"wi")+
+    budgetRow("正则",r.budget.regex,r.budget.total,"rx")+
+    budgetRow("UI模板",r.budget.ui,r.budget.total,"ui")+
+    '<div class="kv">'+
+      '<div>角色名</div><div>'+esc(c.name||"未填写")+'</div>'+
+      '<div>标签</div><div>'+esc(c.tags.join("、")||"未填写")+'</div>'+
+      '<div>开场白</div><div>主开场 '+estimateTokens(c.first_mes)+' token；备选 '+c.alternate_greetings.length+' 条</div>'+
+    '</div>';
+  renderIssues();
+  $("release-output").textContent=buildRelease(c,r);
+}
+
+function stat(n,label){return '<div class="stat"><b>'+esc(n)+'</b><span>'+esc(label)+'</span></div>'}
+function auditModeLabel(mode){
+  return mode==="strict"?"严格轻量卡":mode==="normal"?"普通发布卡":"精品/资料库大卡";
+}
+function budgetRow(label,val,total,cls){
+  var pct=total?Math.round(val/total*100):0;
+  return '<div class="budget-row"><div class="hint">'+esc(label)+'</div><div class="bar '+cls+'"><span style="width:'+pct+'%"></span></div><div class="hint mono">'+val+' / '+pct+'%</div></div>';
+}
+
+function renderIssues(){
+  var list=(S.report&&S.report.issues)||[];
+  if(S.activeTab!=="all")list=list.filter(function(x){return x.cat===S.activeTab});
+  if(!list.length){$("tab-content").innerHTML='<div class="empty">这个分类没有发现问题。</div>';return}
+  var rank={bad:0,warn:1,info:2,good:3};
+  list=list.slice().sort(function(a,b){return rank[a.level]-rank[b.level]});
+  $("tab-content").innerHTML=list.map(function(it){
+    return '<div class="issue '+it.level+'"><div class="issue-title">'+levelLabel(it.level)+' '+esc(it.title)+'</div><div class="issue-desc">'+esc(it.desc)+'</div></div>';
+  }).join("");
+}
+
+function levelLabel(l){return l==="bad"?"严重":l==="warn"?"提醒":l==="good"?"通过":"信息"}
+
+function buildRelease(c,r){
+  var verdict=r.score>=85?"发布维护风险低":r.score>=70?"有少量维护提示，发布前可复核":"维护提示较多，建议按目标平台复核";
+  var bad=r.issues.filter(function(x){return x.level==="bad"}).map(function(x){return "- "+x.title});
+  var warn=r.issues.filter(function(x){return x.level==="warn"}).slice(0,8).map(function(x){return "- "+x.title});
+  var wiChars=c.worldInfo.map(function(e){return e.content||""}).join("").replace(/\s/g,"").length;
+  var noteTags=extractHashTags(c.creator_notes);
+  return [
+    "# "+(c.name||"未命名角色卡"),
+    "",
+    "版本："+($("pub-version").value||"未填写"),
+    "验收结论："+verdict+"（"+auditModeLabel(r.mode)+"，本地风险分 "+r.score+"/100）",
+    "推荐模型："+($("pub-model").value||"请作者补充"),
+    "推荐设置："+($("pub-setting").value||"请作者补充"),
+    "",
+    "## 简介",
+    c.description?crop(c.description,260):"请补充角色简介。",
+    "",
+    "## 内容规模",
+    "- 世界书条目："+c.worldInfo.length,
+    "- 世界书字数估算："+wiChars+"（广场底线 15000 字）",
+    "- 正则脚本："+c.regexScripts.length,
+    "- UI模板："+c.uiTemplates.length,
+    "- 估算 Token："+r.budget.total,
+    "",
+    "## 使用说明",
+    c.creator_notes?crop(c.creator_notes,420):"建议作者补充玩法、禁忌、推荐开局方式和注意事项。",
+    "",
+    "## 发布前注意",
+    bad.length?bad.join("\n"):"- 未发现严重阻断项。",
+    warn.length?warn.join("\n"):"- 未发现明显提醒项。",
+    "",
+    "## 广场审核自查",
+    "- 作者注释标签："+(noteTags.length?noteTags.map(function(x){return "#"+x}).join(" "):"未检测到 #标签，建议补充"),
+    "- 世界书字数："+(wiChars>=15000?"达标":"不足 15000 字，需要补足"),
+    "- 人工红线：封面/插图、涉政敏感、抄袭搬运、重复上传、特定题材低质需作者自行确认。",
+    "",
+    "## 标签",
+    c.tags.length?c.tags.join(" / "):"未填写"
+  ].join("\n");
+}
+
+function crop(s,n){s=String(s||"").trim();return s.length>n?s.slice(0,n)+"...":s}
+
+async function loadFile(file){
+  if(!file)return;
+  try{
+    if(file.name.toLowerCase().endsWith(".png")){
+      var buf=await file.arrayBuffer();
+      var json=extractPngCardJson(new Uint8Array(buf));
+      S.raw=json;
+      S.card=normalizeCard(json);
+    }else{
+      var text=await file.text();
+      S.raw=safeJsonParse(text);
+      S.card=normalizeCard(S.raw);
+    }
+    S.report=analyze(S.card);
+    render();
+    toast("已完成本地体检。","good");
+  }catch(e){
+    toast("导入失败："+e.message,"bad");
+  }
+}
+
+function extractPngCardJson(bytes){
+  var sig=[137,80,78,71,13,10,26,10];
+  for(var i=0;i<sig.length;i++)if(bytes[i]!==sig[i])throw new Error("不是有效 PNG 文件");
+  var p=8,found=[];
+  while(p+8<bytes.length){
+    var len=(bytes[p]<<24)|(bytes[p+1]<<16)|(bytes[p+2]<<8)|bytes[p+3];len=len>>>0;p+=4;
+    var type=String.fromCharCode(bytes[p],bytes[p+1],bytes[p+2],bytes[p+3]);p+=4;
+    var data=bytes.slice(p,p+len);p+=len+4;
+    if(type==="tEXt"||type==="iTXt")found.push(decodeTextChunk(data));
+    if(type==="IEND")break;
+  }
+  var joined=found.join("\n");
+  var m=joined.match(/(?:chara|ccv3|character)\x00([A-Za-z0-9+/=]+)/i)||joined.match(/(?:chara|ccv3|character):\s*([A-Za-z0-9+/=]+)/i);
+  if(!m)throw new Error("PNG 里没有找到 chara 角色卡元数据");
+  var decoded=decodeURIComponent(escape(atob(m[1])));
+  return safeJsonParse(decoded);
+}
+
+function decodeTextChunk(data){
+  var s="";
+  for(var i=0;i<data.length;i++)s+=String.fromCharCode(data[i]);
+  return s;
+}
+
+function copyText(text){
+  navigator.clipboard.writeText(text).then(function(){toast("已复制。","good")},function(){toast("复制失败，请手动选择文本。","bad")});
+}
+
+function currentApiUrl(){
+  var provider=$("api-provider").value;
+  var url=provider==="custom"?$("api-url").value:API_PROVIDERS[provider];
+  return String(url||"").trim().replace(/\/$/,"");
+}
+
+function syncApiProvider(){
+  var provider=$("api-provider").value;
+  var custom=provider==="custom";
+  $("api-url-wrap").classList.toggle("hidden",!custom);
+  if(!custom)$("api-url").value=API_PROVIDERS[provider]||"";
+  if(!$("api-model-select").dataset.loaded)fillModelSelect(providerPresetModels(provider),$("api-model").value);
+}
+
+function changeApiProvider(){
+  delete $("api-model-select").dataset.loaded;
+  $("api-model").value="";
+  syncApiProvider();
+}
+
+
+function providerPresetModels(provider){
+  var map={
+    stain:["gpt-4.1-mini","gpt-4.1","gpt-4o-mini","gpt-4o","deepseek-chat","deepseek-reasoner"],
+    deepseek:["deepseek-chat","deepseek-reasoner"],
+    openrouter:["openai/gpt-4.1-mini","openai/gpt-4o-mini","anthropic/claude-3.5-sonnet","deepseek/deepseek-chat"],
+    siliconflow:["deepseek-ai/DeepSeek-V3","deepseek-ai/DeepSeek-R1","Qwen/Qwen2.5-72B-Instruct"]
+  };
+  return map[provider]||[];
+}
+
+function fillModelSelect(models,selected){
+  models=Array.from(new Set((models||[]).filter(Boolean)));
+  var sel=$("api-model-select");
+  var cur=selected||currentModel();
+  var html='<option value="">请选择模型</option>';
+  models.forEach(function(m){html+='<option value="'+esc(m)+'">'+esc(m)+'</option>'});
+  html+='<option value="__custom">自定义模型名</option>';
+  sel.innerHTML=html;
+  if(cur&&models.indexOf(cur)>=0){
+    sel.value=cur;
+    $("api-model").value=cur;
+  }else if(cur){
+    sel.value="__custom";
+    $("api-model").value=cur;
+  }else if(models.length){
+    sel.value=models[0];
+    $("api-model").value=models[0];
+  }else{
+    sel.value="";
+  }
+  syncModelSelect();
+}
+
+function syncModelSelect(){
+  var custom=$("api-model-select").value==="__custom";
+  $("api-model-custom-wrap").classList.toggle("hidden",!custom);
+  if(!custom)$("api-model").value=$("api-model-select").value||"";
+}
+
+function currentModel(){
+  return ($("api-model-select").value&&$("api-model-select").value!=="__custom")?$("api-model-select").value:$("api-model").value.trim();
+}
+
+async function runAI(){
+  if(!S.card||!S.report){toast("请先导入角色卡。","bad");return}
+  var url=currentApiUrl();
+  var key=$("api-key").value.trim();
+  var model=currentModel();
+  if(!url||!key||!model){toast("请先填写 API 地址、Key，并选择或自定义模型。","bad");return}
+  toast("AI 正在诊断，请稍等。");
+  $("btn-ai").disabled=true;
+  try{
+    var payload={
+      model:model,
+      messages:[
+        {role:"system",content:"你是RP卡玩家体验评测员，不是代码审计员。请像真实玩家试玩一样评估：打开卡后的第一印象、是否知道下一步做什么、建档/开场是否顺畅、首轮行动是否有反馈、信息量是否压迫、玩法承诺是否兑现。技术问题只在它影响玩家体验时才提。"},
+        {role:"user",content:buildAIPrompt(S.card,S.report)}
+      ],
+      temperature:.3
+    };
+    var res=await fetch(url+"/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+key},body:JSON.stringify(payload)});
+    if(!res.ok)throw new Error("接口返回 "+res.status+"："+(await res.text()).slice(0,300));
+    var data=await res.json();
+    var txt=data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content||"未获得模型输出。";
+    $("ai-output").textContent=txt.trim();
+    toast("AI 诊断完成。","good");
+  }catch(e){
+    toast("AI 诊断失败："+e.message,"bad");
+  }finally{
+    $("btn-ai").disabled=false;
+  }
+}
+
+function buildAIPrompt(c,r){
+  var kind=openingKind(c.first_mes);
+  var orderGroups={};
+  c.worldInfo.forEach(function(e){var k=String(e.order);orderGroups[k]=orderGroups[k]||[];orderGroups[k].push(e.title)});
+  var denseOrders=Object.keys(orderGroups).filter(function(k){return orderGroups[k].length>=4}).slice(0,12).map(function(k){return {order:k,count:orderGroups[k].length,titles:orderGroups[k].slice(0,8)}});
+  var experienceEntries=c.worldInfo.filter(function(e){
+    return /建档|开局|身份|选择|规则|回合|行动|反馈|状态|信息|节点|任务|目标|失败|结算|玩法|入口|新手|引导/.test(e.title+" "+e.keys.join(" ")+" "+e.content);
+  }).slice(0,18).map(function(e){
+    return {title:e.title,keys:e.keys,constant:e.constant,position:e.position,order:e.order,content:crop(e.content,650)};
+  });
+  var linearEntries=c.worldInfo.filter(isLinearPlotEntry).map(function(e){
+    return {title:e.title,keys:e.keys,constant:e.constant,order:e.order,content:crop(e.content,800)};
+  });
+  var qualityStats={
+    worldbookChars:c.worldInfo.map(function(e){return e.content||""}).join("").replace(/\s/g,"").length,
+    entryCount:c.worldInfo.length,
+    shortUnder300:c.worldInfo.filter(function(e){return (e.content||"").length<300}).length,
+    encyclopediaLike:c.worldInfo.filter(isEncyclopediaEntry).length,
+    manualLike:c.worldInfo.filter(isManualLikeEntry).length,
+    boilerplateExpanded:c.worldInfo.filter(isBoilerplateExpandedEntry).length,
+    interactiveLike:c.worldInfo.filter(function(e){return /选择|分支|后果|可触发|事件池|随机|目标|任务|行动|反馈|判定|推进|失败|成功|玩家|{{user}}|用户|委托|线索|冷却|移出/.test(e.title+" "+e.keys.join(" ")+" "+e.content)}).length,
+    linearPlotEntries:linearEntries.length
+  };
+  var triggerStats=buildWorldTriggerStats(c.worldInfo);
+  var snapshot={
+    name:c.name,
+    tags:c.tags,
+    auditMode:auditModeLabel(r.mode),
+    openingKind:openingKindLabel(kind),
+    lengths:{
+      description:c.description.length,
+      personality:c.personality.length,
+      first_mes:c.first_mes.length,
+      scenario:c.scenario.length
+    },
+    counts:{worldInfo:c.worldInfo.length,regexScripts:c.regexScripts.length,uiTemplates:c.uiTemplates.length,alternateGreetings:c.alternate_greetings.length},
+    score:r.score,
+    budget:r.budget,
+    issues:r.issues.filter(function(x){return x.level!=="good"}).slice(0,30),
+    denseWorldInfoOrders:denseOrders,
+    worldbookQualityStats:qualityStats,
+    worldTriggerStats:triggerStats,
+    linearPlotEntries:linearEntries,
+    squareStandard:{
+      worldbookMinChars:15000,
+      authorNoteTags:extractHashTags(c.creator_notes),
+      hasUiLikeFeature:hasUiLikeFeature(c),
+      manualRedlines:["封面或插图违规","涉政敏感内容","抄袭或无授权搬运","恶意重复上传","特定题材低质","被拒后原样重复提交"]
+    },
+    experienceRelatedWorldInfo:experienceEntries,
+    inferredPlaytestFocus:[
+      "玩家打开卡后的第一屏是否知道要做什么",
+      "建档/身份线/开场动画是否有明确进入正文路径",
+      "玩家首轮输入后是否会得到剧情反馈而不是继续读规则",
+      "信息层、状态层、正则排版是否帮助理解而不是造成压力",
+      "卡面承诺的玩法是否能在前两轮被感知"
+    ],
+    samples:{
+      description:crop(c.description,1000),
+      personality:crop(c.personality,900),
+      first_mes_head:crop(c.first_mes,2200),
+      first_mes_tail:crop(c.first_mes.slice(-2200),2200),
+      worldInfo:c.worldInfo.slice(0,24).map(function(e){return {title:e.title,keys:e.keys,constant:e.constant,position:e.position,order:e.order,content:crop(e.content,420)}}),
+      regex:c.regexScripts.slice(0,16).map(function(x){return {name:x.name,findRegex:x.findRegex,replace:crop(x.replaceString,650),promptOnly:x.promptOnly,markdownOnly:x.markdownOnly}})
+    }
+  };
+  return [
+    "你是资深 RP 卡实机试玩评测员，不是通用文本校对员，也不是技术审计员。请把自己当成第一次打开这张卡的玩家，评估游玩体验。",
+    "",
+    "硬性要求：",
+    "1. 先模拟一轮玩家路径：打开卡 -> 看开场/建档 -> 玩家可能输入什么 -> AI 应该怎么回应 -> 玩家是否知道下一步。",
+    "2. 不要把本地体检问题换句话复述。只有当技术点会影响玩家体验时才提，例如读不懂、不会操作、反馈慢、误以为坏了、被信息压垮。",
+    "3. 如果 openingKind 是“建档器/选择器开场”或“开场动画/封面演出”，不要默认要求缩短。长开场可以成立，重点判断它是否值得、是否有跳过/降级/快速进入剧情路径。",
+    "4. 对精品/资料库大卡，世界书长、order 重复、关键词重复不是默认缺陷。你要判断这些设计会不会在玩家眼里造成节奏、召回、认知或反馈问题。",
+    "5. 结合 RP-Hub 广场审核标准检查：脑洞是否有独特创意，世界书是否达 15000 字且不是水字数，触发词是否少而准，UI是否加分但不要当硬性要求，标签是否规范。",
+    "6. 特别警惕“线性剧情梗概型世界书”：如果世界书只是把原作主线/电影节点按顺序塞进去，而不是提供可触发事件池、分支、玩家选择后果、NPC反应逻辑，要明确指出它会导致玩家体验线性、AI复读原作、互动价值低。",
+    "7. 重点复核世界书触发体验：触发词是否过泛、过窄、过多、过少；一次触发是否会灌入太多内容；核心玩法词是否只触发很少内容；动态条目是否可能长期不触发。",
+    "8. 必修项只能写真正会导致玩家无法开始、首轮不知道怎么做、关键玩法承诺落空、反馈不可见、平台兼容导致误判坏卡、或广场硬性标准/质量标准不达标的问题。没有就写“无硬性必修项”。",
+    "9. 输出要具体到能改卡：改哪句提示、加哪个入口、删/挪哪类说明、首轮应该给什么反馈。不要写泛泛的发布建议。",
+    "",
+    "请输出：",
+    "1. 玩家视角一句话结论",
+    "2. 模拟首轮试玩路径（玩家看到什么、可能输入什么、期待什么反馈）",
+    "3. 体验卡点（只写会影响玩家游玩的点）",
+    "4. 必修项（没有就明确说无硬性必修项）",
+    "5. 世界书触发体验：过触发 / 弱触发 / 不触发 / 单次触发内容过多或过少",
+    "6. 广场审核三维度：脑洞 / 世界书 / UI 加分项",
+    "7. 低成本改法（按优先级列，必须具体）",
+    "8. 哪些技术提示可以忽略，因为它们不影响玩家体验或审核",
+    "",
+    "数据：",
+    JSON.stringify(snapshot,null,2)
+  ].join("\n");
+}
+
+async function fetchModels(){
+  var url=currentApiUrl();
+  var key=$("api-key").value.trim();
+  if(!url||!key){toast("请先填写 API 地址和 Key。","bad");return}
+  try{
+    toast("正在获取模型列表。");
+    var res=await fetch(url+"/models",{headers:{"Authorization":"Bearer "+key}});
+    if(!res.ok)throw new Error("接口返回 "+res.status);
+    var data=await res.json();
+    var models=(data.data||[]).map(function(m){return m.id}).filter(Boolean);
+    if(models.length){
+      $("api-model-select").dataset.loaded="1";
+      fillModelSelect(models,$("api-model").value);
+      toast("已获取 "+models.length+" 个模型，可在下拉框选择。","good");
+    }else{
+      fillModelSelect(providerPresetModels($("api-provider").value),$("api-model").value);
+      toast("接口返回为空，已显示常用模型兜底。","bad");
+    }
+  }catch(e){
+    fillModelSelect(providerPresetModels($("api-provider").value),$("api-model").value);
+    toast("获取模型失败，已显示常用模型兜底："+e.message,"bad");
+  }
+}
+
+function saveApi(){
+  localStorage.setItem("rpqa_api",JSON.stringify({provider:$("api-provider").value,url:$("api-url").value,key:$("api-key").value,model:currentModel()}));
+  toast("API 设置已保存到当前浏览器。","good");
+}
+
+function loadApi(){
+  try{
+    var v=JSON.parse(localStorage.getItem("rpqa_api")||"{}");
+    $("api-provider").value=v.provider||guessApiProvider(v.url)||(v.url?"custom":"stain");
+    $("api-url").value=v.url||"";
+    $("api-key").value=v.key||"";
+    $("api-model").value=v.model||"";
+    syncApiProvider();
+    fillModelSelect(providerPresetModels($("api-provider").value),v.model||"");
+  }catch(e){}
+}
+
+function guessApiProvider(url){
+  url=String(url||"").replace(/\/$/,"");
+  var hit=Object.keys(API_PROVIDERS).find(function(k){return API_PROVIDERS[k]===url});
+  return hit||"";
+}
+
+function loadSample(){
+  S.raw={
+    name:"雨城档案员",
+    description:"一位在雨城旧档案馆工作的调查型角色，擅长记录异常事件，并引导用户追查失踪信件。",
+    personality:"克制、谨慎、观察力强。不会替用户做决定，会用简短问题推动调查。",
+    first_mes:"雨水敲在档案馆的铁皮窗沿上。{{char}}把一只潮湿的牛皮纸袋推到你面前，声音压得很低：『这封信昨晚自己回到了失物柜。你愿意和我一起查下去吗？』",
+    scenario:"雨城连续出现无法解释的旧信回流事件，用户被卷入档案馆的夜间调查。",
+    creator_notes:"推荐悬疑慢热玩法。用户可以选择调查地点、询问NPC或整理线索。",
+    tags:["悬疑","调查","慢热"],
+    alternate_greetings:["凌晨两点，档案馆的灯突然自己亮了。{{char}}站在柜门前，示意你别出声。"],
+    character_book:{entries:[
+      {comment:"世界观总则",keys:["雨城","旧档案馆"],content:"雨城常年阴雨，旧档案馆保存大量失踪人口、旧信件和未结案记录。所有异常都应以线索形式逐步揭露。",enabled:true,constant:true,position:"before_char",order:10},
+      {comment:"信件异常",keys:["信","牛皮纸袋","失物柜"],content:"异常信件会在无人时回到档案馆。信纸边缘带有淡淡霉味，内容常指向过去未解决的事件。",enabled:true,constant:false,selective:true,position:"after_char",order:120}
+    ]},
+    regexScripts:[{scriptName:"线索状态栏",findRegex:"/线索状态：地点=(.*?)\\|风险=(.*?)\\|线索=(.*)$/gm",replaceString:"<section class='case'>$1 / $2 / $3</section>",markdownOnly:true}]
+  };
+  S.card=normalizeCard(S.raw);
+  S.report=analyze(S.card);
+  render();
+  toast("示例已载入。","good");
+}
+
+function exportReport(){
+  if(!S.card||!S.report){toast("请先导入角色卡。","bad");return}
+  var report={
+    generatedAt:new Date().toISOString(),
+    cardName:S.card.name,
+    score:S.report.score,
+    budget:S.report.budget,
+    issues:S.report.issues,
+    release:buildRelease(S.card,S.report),
+    ai:$("ai-output").textContent
+  };
+  var blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=(S.card.name||"RP卡")+"-体检报告.json";
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
+}
+
+function bind(){
+  $("pick").onclick=function(){$("file").click()};
+  $("file").onchange=function(){loadFile(this.files[0])};
+  $("btn-parse-paste").onclick=function(){
+    try{S.raw=safeJsonParse($("paste").value);S.card=normalizeCard(S.raw);S.report=analyze(S.card);render();toast("粘贴内容已解析。","good")}
+    catch(e){toast("解析失败："+e.message,"bad")}
+  };
+  $("btn-rerun").onclick=function(){if(S.card){S.report=analyze(S.card);render();toast("已重新体检。","good")}};
+  $("btn-sample").onclick=loadSample;
+  $("btn-reset").onclick=function(){S.raw=null;S.card=null;S.report=null;$("paste").value="";$("load-state").textContent="未导入";$("load-state").className="pill";render();toast("已清空。")};
+  $("btn-copy-summary").onclick=function(){if(S.card&&S.report)copyText("《"+S.card.name+"》体检分："+S.report.score+"/100\n严重："+S.report.counts.bad+"，提醒："+S.report.counts.warn+"\n估算Token："+S.report.budget.total)};
+  $("btn-copy-release").onclick=function(){copyText($("release-output").textContent)};
+  $("btn-copy-ai").onclick=function(){copyText($("ai-output").textContent)};
+  $("btn-export-report").onclick=exportReport;
+  $("btn-save-api").onclick=saveApi;
+  $("btn-fetch-models").onclick=fetchModels;
+  $("btn-ai").onclick=runAI;
+  $("api-provider").onchange=changeApiProvider;
+  $("api-model-select").onchange=syncModelSelect;
+  $("audit-mode").onchange=function(){if(S.card){S.report=analyze(S.card);render();toast("已按「"+auditModeLabel(S.report.mode)+"」重新体检。","good")}};
+  ["pub-model","pub-setting","pub-version"].forEach(function(id){$(id).addEventListener("input",function(){if(S.card&&S.report)render()})});
+  qa(".tab").forEach(function(btn){
+    btn.onclick=function(){
+      S.activeTab=btn.dataset.tab;
+      qa(".tab").forEach(function(b){b.classList.toggle("active",b===btn)});
+      renderIssues();
+    };
+  });
+  var drop=$("drop");
+  ["dragenter","dragover"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add("drag")})});
+  ["dragleave","drop"].forEach(function(ev){drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.remove("drag")})});
+  drop.addEventListener("drop",function(e){loadFile(e.dataTransfer.files[0])});
+}
+
+bind();
+loadApi();
+syncApiProvider();
+render();
+})();
+</script>
+<script src="/offline/sw-register.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# 系统文件
+Thumbs.db
+.DS_Store
+Desktop.ini
+*.swp
+*.swo
+
+# 编辑器/IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# 调试/日志
+*.log
+*.tmp
+
+# 开发临时文件（不入库）
+temp/
+dev/
